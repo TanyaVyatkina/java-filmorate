@@ -16,14 +16,17 @@ public class ValidateService {
         if (film.getName() == null || film.getName().isEmpty()) {
             log.warn("Название фильма не может быть пустым.");
             throw new ValidationException("Название фильма не может быть пустым.");
-        } else if (film.getDescription() != null && film.getDescription().length() > 200) {
+        }
+        if (film.getDescription() != null && film.getDescription().length() > 200) {
             log.warn("Максимальная длина описания не должна превышать 200 символов.");
             throw new ValidationException("Максимальная длина описания не должна превышать 200 символов.");
-        } else if (film.getReleaseDate() != null
+        }
+        if (film.getReleaseDate() != null
                 && film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             log.warn("Дата релиза должна быть не раньше 28 декабря 1895 года.");
             throw new ValidationException("Дата релиза должна быть не раньше 28 декабря 1895 года.");
-        } else if (film.getDuration() <= 0) {
+        }
+        if (film.getDuration() <= 0) {
             log.warn("Продолжительность фильма должна быть положительным числом.");
             throw new ValidationException("Продолжительность фильма должна быть положительным числом.");
         }
@@ -33,14 +36,17 @@ public class ValidateService {
         if (user.getEmail() == null || user.getEmail().isBlank()) {
             log.warn("Электронная почта не может быть пустой.");
             throw new ValidationException("Электронная почта не может быть пустой.");
-        } else if (!user.getEmail().contains("@")) {
+        }
+        if (!user.getEmail().contains("@")) {
             log.warn("Электронная почта должна содержать @.");
             throw new ValidationException("Электронная почта должна содержать @.");
-        } else if (user.getLogin() == null || user.getLogin().isEmpty()
+        }
+        if (user.getLogin() == null || user.getLogin().isEmpty()
                 || user.getLogin().contains(" ")) {
             log.warn("Логин не может быть пустым или содержать пробелы.");
             throw new ValidationException("Логин не может быть пустым или содержать пробелы.");
-        } else if (user.getBirthday() != null && user.getBirthday().isAfter(LocalDate.now())) {
+        }
+        if (user.getBirthday() != null && user.getBirthday().isAfter(LocalDate.now())) {
             log.warn("День Рождения не может быть в будущем.");
             throw new ValidationException("День Рождения не может быть в будущем.");
         }
