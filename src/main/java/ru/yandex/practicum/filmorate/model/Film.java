@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class Film {
     @EqualsAndHashCode.Include
-    private int id;
+    private Integer id;
     private String name;
     private String description;
     private LocalDate releaseDate;
