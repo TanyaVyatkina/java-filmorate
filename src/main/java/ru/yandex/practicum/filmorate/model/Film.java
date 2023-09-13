@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -16,4 +18,16 @@ public class Film {
     private String description;
     private LocalDate releaseDate;
     private int duration;
+    private Set<Integer> likes;
+
+    public void addLike(Integer userId) {
+        if (likes == null) {
+            likes = new HashSet<>();
+        }
+        likes.add(userId);
+    }
+
+    public void removeLike(Integer userId) {
+        likes.remove(userId);
+    }
 }
