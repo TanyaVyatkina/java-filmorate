@@ -6,76 +6,84 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.ValidateService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
     private FilmStorage filmStorage;
+    private UserStorage userStorage;
     private ValidateService validateService;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, ValidateService validateService) {
+    public FilmService(FilmStorage filmStorage, UserStorage userStorage, ValidateService validateService) {
         this.filmStorage = filmStorage;
+        this.userStorage = userStorage;
         this.validateService = validateService;
     }
 
     public Film findFilmById(Integer id) {
-        Film film = filmStorage.findById(id);
-        if (film == null) {
+        Optional<Film> film = filmStorage.findById(id);
+        if (film.isEmpty()) {
             throw new NotFoundException("Фильм с id = " + id + " не найден.");
         }
-        return film;
+        return film.get();
     }
 
-    public Collection<Film> findAllFilms() {
+    public List<Film> findAllFilms() {
         return filmStorage.findAll();
     }
 
     public Film updateFilm(Film film) {
-        validateService.validateFilmExist(film.getId());
+        checkFilmExist(film.getId());
         return filmStorage.update(film);
     }
 
     public Film createFilm(Film film) {
         validateService.validateFilm(film);
+
         return filmStorage.create(film);
     }
 
     public void addLike(Integer id, Integer userId) {
-        validateService.validateUserExist(userId);
-        Film film = validateService.validateFilmExist(id);
+        checkFilmExist(id);
+        checkUserExist(userId);
 
-        film.addLike(userId);
-        filmStorage.update(film);
+        filmStorage.addLike(id, userId);
     }
 
     public void removeLike(Integer id, Integer userId) {
-        validateService.validateUserExist(userId);
-        Film film = validateService.validateFilmExist(id);
+        checkFilmExist(id);
+        checkUserExist(userId);
 
-        film.removeLike(userId);
-        filmStorage.update(film);
+        filmStorage.removeLike(id, userId);
     }
 
-    public Collection<Film> getMostPopularFilms(int count) {
+    public List<Film> getMostPopularFilms(int count) {
         return filmStorage.findAll().stream()
-                .sorted(this::compare)
+                .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
                 .limit(count)
                 .collect(Collectors.toList());
     }
 
-    private int compare(Film film1, Film film2) {
-        if (film2.getLikes() != null && film1.getLikes() != null) {
-            return film2.getLikes().size() - film1.getLikes().size();
+    private void checkFilmExist(Integer id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Не задан id фильма.");
         }
-        if (film2.getLikes() != null) {
-            return 1;
+        if (filmStorage.findById(id).isEmpty()) {
+            throw new NotFoundException("Фильм с id = " + id + " не найден.");
         }
-        if (film1.getLikes() != null) {
-            return -1;
+    }
+
+    private void checkUserExist(Integer id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Не задан id пользователя.");
         }
-        return 0;
+        if (userStorage.findById(id).isEmpty()) {
+            throw new NotFoundException("Пользователь с id = " + id + " не найден.");
+        }
     }
 }

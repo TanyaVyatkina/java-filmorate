@@ -1,32 +1,16 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 
 @Service
 @Slf4j
 public class ValidateService {
-
-    private UserStorage userStorage;
-    private FilmStorage filmStorage;
-
-    public ValidateService() {
-    }
-
-    @Autowired
-    public ValidateService(UserStorage userStorage, FilmStorage filmStorage) {
-        this.userStorage = userStorage;
-        this.filmStorage = filmStorage;
-    }
 
     public void validateFilm(Film film) {
         if (film.getName() == null || film.getName().isEmpty()) {
@@ -69,31 +53,5 @@ public class ValidateService {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
-    }
-
-    public Film validateFilmExist(Integer id) {
-        if (id == null) {
-            log.warn("Не задан id фильма.");
-            throw new IllegalArgumentException("Не задан id фильма.");
-        }
-        Film film = filmStorage.findById(id);
-        if (film == null) {
-            log.warn("Фильм с id = {} не найден.", id);
-            throw new NotFoundException("Фильм с id = " + id + " не найден.");
-        }
-        return film;
-    }
-
-    public User validateUserExist(Integer id) {
-        if (id == null) {
-            log.warn("Не задан id пользователя.");
-            throw new IllegalArgumentException("Не задан id пользователя.");
-        }
-        User user = userStorage.findById(id);
-        if (user == null) {
-            log.warn("Пользователь с id = {} не найден.", id);
-            throw new NotFoundException("Пользователь с id = " + id + " не найден.");
-        }
-        return user;
     }
 }

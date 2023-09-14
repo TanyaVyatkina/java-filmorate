@@ -1,12 +1,9 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -16,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ValidateServiceTest {
 
-    ValidateService validateService = new ValidateService(new InMemoryUserStorage(), new InMemoryFilmStorage());
+    ValidateService validateService = new ValidateService();
 
     @Test
     public void validateFilm_EmptyName_ReturnsValidationException() {
@@ -48,20 +45,6 @@ public class ValidateServiceTest {
                 LocalDate.of(2000, 10, 10), -100, new HashSet<>());
         ValidationException result = assertThrows(ValidationException.class, () -> validateService.validateFilm(film));
         assertEquals(result.getMessage(), "Продолжительность фильма должна быть положительным числом.");
-    }
-
-    @Test
-    public void validateFilmExist_NullFilmId_ReturnsIllegalArgumentException() {
-        IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
-                () -> validateService.validateFilmExist(
-                        null));
-        assertEquals(result.getMessage(), "Не задан id фильма.");
-    }
-
-    @Test
-    public void validateFilmExist_NotSavedFilm_ReturnsIllegalArgumentException() {
-        NotFoundException result = assertThrows(NotFoundException.class, () -> validateService.validateFilmExist(2));
-        assertEquals(result.getMessage(), "Фильм с id = 2 не найден.");
     }
 
     @Test
@@ -102,18 +85,5 @@ public class ValidateServiceTest {
                 LocalDate.now().plusMonths(1), new HashSet<>());
         ValidationException result = assertThrows(ValidationException.class, () -> validateService.validateUser(user));
         assertEquals(result.getMessage(), "День Рождения не может быть в будущем.");
-    }
-
-    @Test
-    public void validateUserExist_NotSavedUser_ReturnsIllegalArgumentException() {
-        NotFoundException result = assertThrows(NotFoundException.class, () -> validateService.validateUserExist(2));
-        assertEquals(result.getMessage(), "Пользователь с id = 2 не найден.");
-    }
-
-    @Test
-    public void validateUserExist_NullUserId_ReturnsIllegalArgumentException() {
-        IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
-                () -> validateService.validateUserExist(null));
-        assertEquals(result.getMessage(), "Не задан id пользователя.");
     }
 }
