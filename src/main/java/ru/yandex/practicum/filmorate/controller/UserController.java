@@ -29,7 +29,9 @@ public class UserController {
     @GetMapping("/{id}")
     public User findById(@PathVariable("id") Integer id) {
         log.debug("Поиск пользователя с id = {}.", id);
-        return userService.findUserById(id);
+        User user = userService.findUserById(id);
+        log.debug("Найден пользователь {}.", id);
+        return user;
     }
 
     @PostMapping

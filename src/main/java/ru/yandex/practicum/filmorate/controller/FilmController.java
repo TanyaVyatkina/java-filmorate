@@ -28,7 +28,9 @@ public class FilmController {
     @GetMapping("/{id}")
     public Film findById(@PathVariable("id") Integer id) {
         log.debug("Поиск фильма с id = {}", id);
-        return filmService.findFilmById(id);
+        Film film = filmService.findFilmById(id);
+        log.debug("Найден фильм {}.", film);
+        return film;
     }
 
     @PostMapping
@@ -63,7 +65,9 @@ public class FilmController {
 
     @GetMapping("/popular")
     public List<Film> getMostPopularFilms(@RequestParam(defaultValue = "10", required = false) int count) {
-        log.debug("Пришел запрос на поиск самых популярных фильмов.");
-        return filmService.getMostPopularFilms(count);
+        log.debug("Пришел запрос на поиск {} самых популярных фильмов.", count);
+        List<Film> films = filmService.getMostPopularFilms(count);
+        log.debug("Список самых популярных фильмов: {}.", films);
+        return films;
     }
 }

@@ -9,6 +9,9 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.ErrorResponse;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 @RestControllerAdvice
 @Slf4j
 public class ErrorHandler {
@@ -30,7 +33,10 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleRuntimeException(final RuntimeException e) {
-        log.error(e.getMessage(), e.getStackTrace());
-        return new ErrorResponse(e.getMessage(), e.getStackTrace().toString());
+        log.error(e.getMessage(), e);
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        return new ErrorResponse(e.getMessage(), sw.toString());
     }
 }

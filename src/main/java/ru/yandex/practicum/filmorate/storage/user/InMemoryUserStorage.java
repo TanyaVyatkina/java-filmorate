@@ -39,21 +39,22 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public void addFriend(Integer id, Integer friendId) {
-        if (usersFriends.get(id) == null) {
-            usersFriends.put(id, new HashSet<>());
+    public void addFriend(User user, User friend) {
+        Integer userId = user.getId();
+        if (usersFriends.get(userId) == null) {
+            usersFriends.put(userId, new HashSet<>());
         }
-        usersFriends.get(id).add(friendId);
+        usersFriends.get(userId).add(friend.getId());
     }
 
     @Override
-    public void removeFriend(Integer id, Integer friendId) {
-        usersFriends.get(id).remove(friendId);
+    public void removeFriend(User user, User friend) {
+        usersFriends.get(user.getId()).remove(friend.getId());
     }
 
     @Override
-    public Set<Integer> getUsersFriends(Integer id) {
-        return usersFriends.get(id);
+    public Set<Integer> findFriends(User user) {
+        return usersFriends.get(user.getId());
     }
 
     private Integer getUserId() {

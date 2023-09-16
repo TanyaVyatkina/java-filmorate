@@ -7,7 +7,10 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.ValidateService;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,11 +25,7 @@ public class UserService {
     }
 
     public User findUserById(Integer id) {
-        Optional<User> user = userStorage.findById(id);
-        if (user.isEmpty()) {
-            throw new NotFoundException("Пользователь с id = " + id + " не найден.");
-        }
-        return user.get();
+        return findUserIfExist(id);
     }
 
     public List<User> findAllUsers() {
@@ -34,46 +33,47 @@ public class UserService {
     }
 
     public User updateUser(User user) {
-        checkUserExist(user.getId());
-        validateService.validateUser(user);
+        validateService.validateUpdateUser(user);
+        findUserIfExist(user.getId());
+        checkAndSetUserName(user);
 
-        userStorage.update(user);
         return userStorage.update(user);
     }
 
     public User createUser(User user) {
         validateService.validateUser(user);
+        checkAndSetUserName(user);
 
         return userStorage.create(user);
     }
 
     public void addFriend(Integer id, Integer friendId) {
-        checkUserExist(id);
-        checkUserExist(friendId);
+        User user = findUserIfExist(id);
+        User friend = findUserIfExist(friendId);
 
-        userStorage.addFriend(id, friendId);
-        userStorage.addFriend(friendId, id);
+        userStorage.addFriend(user, friend);
+        userStorage.addFriend(friend, user);
     }
 
     public void removeFriend(Integer id, Integer friendId) {
-        checkUserExist(id);
-        checkUserExist(friendId);
+        User user = findUserIfExist(id);
+        User friend = findUserIfExist(friendId);
 
-        userStorage.removeFriend(id, friendId);
-        userStorage.removeFriend(friendId, id);
+        userStorage.removeFriend(user, friend);
+        userStorage.removeFriend(friend, user);
     }
 
     public List<User> getUsersFriends(Integer id) {
-        checkUserExist(id);
-        return getUsersFromIds(userStorage.getUsersFriends(id));
+        User user = findUserIfExist(id);
+        return getUsersFromIds(userStorage.findFriends(user));
     }
 
     public List<User> getCommonFriends(Integer id, Integer otherId) {
-        checkUserExist(id);
-        checkUserExist(otherId);
+        User user = findUserIfExist(id);
+        User otherUser = findUserIfExist(otherId);
 
-        Set<Integer> userFriends = userStorage.getUsersFriends(id);
-        Set<Integer> otherUserFriends = userStorage.getUsersFriends(otherId);
+        Set<Integer> userFriends = userStorage.findFriends(user);
+        Set<Integer> otherUserFriends = userStorage.findFriends(otherUser);
 
         if (userFriends == null || otherUserFriends == null) {
             return Collections.emptyList();
@@ -94,12 +94,14 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    private void checkUserExist(Integer id) {
-        if (id == null) {
-            throw new IllegalArgumentException("Не задан id пользователя.");
-        }
-        if (userStorage.findById(id).isEmpty()) {
-            throw new NotFoundException("Пользователь с id = " + id + " не найден.");
+    private User findUserIfExist(Integer id) {
+        return userStorage.findById(id)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id = " + id + " не найден."));
+    }
+
+    private void checkAndSetUserName(User user) {
+        if (user.isEmptyName()) {
+            user.setName(user.getLogin());
         }
     }
 }

@@ -50,8 +50,21 @@ public class ValidateService {
             log.warn("День Рождения не может быть в будущем.");
             throw new ValidationException("День Рождения не может быть в будущем.");
         }
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
+    }
+
+    public void validateUpdateFilm(Film film) {
+        if (film.getId() == null) {
+            log.warn("Не задан id фильма.");
+            throw new IllegalArgumentException("Не задан id фильма.");
         }
+        validateFilm(film);
+    }
+
+    public void validateUpdateUser(User user) {
+        if (user.getId() == null) {
+            log.warn("Не задан id пользователя.");
+            throw new IllegalArgumentException("Не задан id пользователя.");
+        }
+        validateUser(user);
     }
 }
