@@ -7,11 +7,8 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.ValidateService;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -65,38 +62,24 @@ public class UserService {
 
     public List<User> getUsersFriends(Integer id) {
         User user = findUserIfExist(id);
-        return getUsersFromIds(userStorage.findFriends(user));
+        return userStorage.findFriends(user);
     }
 
     public List<User> getCommonFriends(Integer id, Integer otherId) {
         User user = findUserIfExist(id);
         User otherUser = findUserIfExist(otherId);
 
-        Set<Integer> userFriends = userStorage.findFriends(user);
-        Set<Integer> otherUserFriends = userStorage.findFriends(otherUser);
+        List<User> userFriends = userStorage.findFriends(user);
+        List<User> otherUserFriends = userStorage.findFriends(otherUser);
 
-        if (userFriends == null || otherUserFriends == null) {
-            return Collections.emptyList();
-        }
-        Set<Integer> commonFriends = new HashSet<>(userFriends);
+        List<User> commonFriends = new ArrayList<>(userFriends);
         commonFriends.retainAll(otherUserFriends);
 
-        return getUsersFromIds(commonFriends);
-    }
-
-    private List<User> getUsersFromIds(Set<Integer> ids) {
-        if (ids.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return userStorage.findAll()
-                .stream()
-                .filter(u -> ids.contains(u.getId()))
-                .collect(Collectors.toList());
+        return commonFriends;
     }
 
     private User findUserIfExist(Integer id) {
-        return userStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id = " + id + " не найден."));
+        return userStorage.findById(id).orElseThrow(() -> new NotFoundException("Пользователь с id = " + id + " не найден."));
     }
 
     private void checkAndSetUserName(User user) {

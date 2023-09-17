@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -53,11 +54,21 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Set<Integer> findFriends(User user) {
-        return usersFriends.get(user.getId());
+    public List<User> findFriends(User user) {
+        return getUsersFromIds(usersFriends.get(user.getId()));
     }
 
     private Integer getUserId() {
         return ++userId;
+    }
+
+    private List<User> getUsersFromIds(Set<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return users.values()
+                .stream()
+                .filter(u -> ids.contains(u.getId()))
+                .collect(Collectors.toList());
     }
 }

@@ -61,7 +61,10 @@ public class FilmService {
     }
 
     public List<Film> getMostPopularFilms(int count) {
-        return filmStorage.findAll().stream().sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount()).limit(count).collect(Collectors.toList());
+        return filmStorage.findAll().stream()
+                .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
+                .limit(count)
+                .collect(Collectors.toList());
     }
 
     private Film findFilmIfExist(Integer id) {
