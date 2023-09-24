@@ -16,4 +16,8 @@ public class User {
     private String login;
     private String name;
     private LocalDate birthday;
+
+    public boolean isEmptyName() {
+        return name == null || name.isBlank();
+    }
 }

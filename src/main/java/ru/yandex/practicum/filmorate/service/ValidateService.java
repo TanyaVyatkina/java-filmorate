@@ -1,14 +1,14 @@
-package ru.yandex.practicum.filmorate.servise;
+package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
-import java.util.Map;
 
+@Service
 @Slf4j
 public class ValidateService {
 
@@ -50,30 +50,21 @@ public class ValidateService {
             log.warn("День Рождения не может быть в будущем.");
             throw new ValidationException("День Рождения не может быть в будущем.");
         }
-        if (user.getName() == null) {
-            user.setName(user.getLogin());
-        }
     }
 
-    public void validateUpdateFilm(Integer id, Map<Integer, Film> films) {
-        if (id == null) {
+    public void validateUpdateFilm(Film film) {
+        if (film.getId() == null) {
             log.warn("Не задан id фильма.");
             throw new IllegalArgumentException("Не задан id фильма.");
         }
-        if (films.get(id) == null) {
-            log.warn("Фильм с id = {} не найден.", id);
-            throw new NotFoundException("Фильм с id = " + id + " не найден.");
-        }
+        validateFilm(film);
     }
 
-    public void validateUpdateUser(Integer id, Map<Integer, User> users) {
-        if (id == null) {
+    public void validateUpdateUser(User user) {
+        if (user.getId() == null) {
             log.warn("Не задан id пользователя.");
             throw new IllegalArgumentException("Не задан id пользователя.");
         }
-        if (users.get(id) == null) {
-            log.warn("Пользователь с id = {} не найден.", id);
-            throw new NotFoundException("Пользователь с id = " + id + " не найден.");
-        }
+        validateUser(user);
     }
 }
