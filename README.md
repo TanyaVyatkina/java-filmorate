@@ -18,7 +18,7 @@
   ```
 * Найти 10 самых популярных фильмов:
   ```
-  SELECT * FROM Film ORDER BY likesCount DESC;
+  SELECT * FROM Film ORDER BY likesCount DESC LIMIT 10;
   ```
   
 
