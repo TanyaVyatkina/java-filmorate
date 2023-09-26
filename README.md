@@ -14,7 +14,7 @@
   ```
 * Найти всех друзей пользователя с id = 1:
   ```
-  SELECT * FROM USER WHERE user_id IN (SELECT other_user_id FROM Friendship WHERE user_id = 1);
+  SELECT * FROM Uer WHERE user_id IN (SELECT other_user_id FROM Friendship WHERE user_id = 1);
   ```
 * Найти 10 самых популярных фильмов:
   ```
