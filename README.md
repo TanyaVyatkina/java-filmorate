@@ -6,19 +6,19 @@
 ### Пример команд:
 * Поиск всех фильмов:
   ```
-  SELECT * FROM film;
+  SELECT * FROM films;
   ```
 * Найти пользователя с id = 1:
   ```
-  SELECT * FROM user WHERE user_id = 1;
+  SELECT * FROM users WHERE user_id = 1;
   ```
 * Найти всех друзей пользователя с id = 1:
   ```
-  SELECT * FROM user WHERE user_id IN (SELECT other_user_id FROM friendship WHERE user_id = 1);
+  SELECT * FROM users WHERE user_id IN (SELECT friend_id FROM friendship WHERE user_id = 1);
   ```
 * Найти 10 самых популярных фильмов:
   ```
-  SELECT * FROM film ORDER BY likesCount DESC LIMIT 10;
+  SELECT * FROM films ORDER BY likes_count DESC LIMIT 10;
   ```
   
 
