@@ -35,7 +35,7 @@ public class ValidateServiceTest {
     @Test
     public void validateFilm_WrongReleaseDate_ReturnsValidationException() {
         Film film = getFilm();
-        film.setReleaseDate( LocalDate.of(1800, 10, 10));
+        film.setReleaseDate(LocalDate.of(1800, 10, 10));
         ValidationException result = assertThrows(ValidationException.class, () -> validateService.validateFilm(film));
         assertEquals(result.getMessage(), "Дата релиза должна быть не раньше 28 декабря 1895 года.");
     }
