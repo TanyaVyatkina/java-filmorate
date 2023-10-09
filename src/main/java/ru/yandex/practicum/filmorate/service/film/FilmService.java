@@ -1,9 +1,12 @@
 package ru.yandex.practicum.filmorate.service.film;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.ValidateService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
@@ -19,7 +22,9 @@ public class FilmService {
     private ValidateService validateService;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage, ValidateService validateService) {
+    public FilmService(@Qualifier("dbFilmStorage") FilmStorage filmStorage,
+                       @Qualifier("dbUserStorage") UserStorage userStorage,
+                       ValidateService validateService) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.validateService = validateService;
@@ -50,6 +55,10 @@ public class FilmService {
         Film film = findFilmIfExist(id);
         User user = findUserIfExist(userId);
 
+        int likes = film.getLikesCount();
+        film.setLikesCount(++likes);
+
+        filmStorage.update(film);
         filmStorage.addLike(film, user);
     }
 
@@ -57,6 +66,10 @@ public class FilmService {
         Film film = findFilmIfExist(id);
         User user = findUserIfExist(userId);
 
+        int likes = film.getLikesCount();
+        film.setLikesCount(--likes);
+
+        filmStorage.update(film);
         filmStorage.removeLike(film, user);
     }
 
@@ -65,6 +78,24 @@ public class FilmService {
                 .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
                 .limit(count)
                 .collect(Collectors.toList());
+    }
+
+    public List<Genre> findAllGenres() {
+        return filmStorage.findAllGenres();
+    }
+
+    public Genre findGenreById(Integer id) {
+        return filmStorage.findGenreById(id)
+                .orElseThrow(() -> new NotFoundException("Жанр с id = " + id + " не найден."));
+    }
+
+    public List<Mpa> findAllRatings() {
+        return filmStorage.findAllRatings();
+    }
+
+    public Mpa findRatingById(Integer id) {
+        return filmStorage.findRatingById(id)
+                .orElseThrow(() -> new NotFoundException("Рейтинг с id = " + id + " не найден."));
     }
 
     private Film findFilmIfExist(Integer id) {
