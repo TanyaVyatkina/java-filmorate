@@ -5,14 +5,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
+import ru.yandex.practicum.filmorate.storage.film.GenreDbStorage;
+import ru.yandex.practicum.filmorate.storage.film.MpaDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 
-import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
@@ -30,6 +32,9 @@ class FilmorateApplicationTests {
 
     private final UserDbStorage userStorage;
     private final FilmDbStorage filmStorage;
+    private final GenreDbStorage genreStorage;
+    private final MpaDbStorage mpaStorage;
+
 
     @Test
     void contextLoads() {
@@ -130,7 +135,7 @@ class FilmorateApplicationTests {
 
     @Test
     void testFindGenreById() {
-        Optional<Genre> resultGenre = filmStorage.findGenreById(1);
+        Optional<Genre> resultGenre = genreStorage.findGenreById(1);
         assertThat(resultGenre)
                 .isPresent()
                 .get()
@@ -139,7 +144,7 @@ class FilmorateApplicationTests {
 
     @Test
     void testFindAllGenres() {
-        List<Genre> resultGenres = filmStorage.findAllGenres();
+        List<Genre> resultGenres = genreStorage.findAllGenres();
         assertThat(resultGenres)
                 .isNotNull()
                 .size()
@@ -154,7 +159,7 @@ class FilmorateApplicationTests {
 
     @Test
     void testFindRatingById() {
-        Optional<Mpa> resultRating = filmStorage.findRatingById(1);
+        Optional<Mpa> resultRating = mpaStorage.findRatingById(1);
         assertThat(resultRating)
                 .isPresent()
                 .get()
@@ -163,7 +168,7 @@ class FilmorateApplicationTests {
 
     @Test
     void testFindAllRatings() {
-        List<Mpa> resultRatings = filmStorage.findAllRatings();
+        List<Mpa> resultRatings = mpaStorage.findAllRatings();
         assertThat(resultRatings)
                 .isNotNull()
                 .size()
