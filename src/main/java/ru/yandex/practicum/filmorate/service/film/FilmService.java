@@ -66,10 +66,6 @@ public class FilmService {
         Film film = findFilmIfExist(id);
         User user = findUserIfExist(userId);
 
-        int likes = film.getLikesCount();
-        film.setLikesCount(--likes);
-
-        filmStorage.update(film);
         filmStorage.removeLike(film, user);
     }
 
@@ -78,24 +74,6 @@ public class FilmService {
                 .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
                 .limit(count)
                 .collect(Collectors.toList());
-    }
-
-    public List<Genre> findAllGenres() {
-        return filmStorage.findAllGenres();
-    }
-
-    public Genre findGenreById(Integer id) {
-        return filmStorage.findGenreById(id)
-                .orElseThrow(() -> new NotFoundException("Жанр с id = " + id + " не найден."));
-    }
-
-    public List<Mpa> findAllRatings() {
-        return filmStorage.findAllRatings();
-    }
-
-    public Mpa findRatingById(Integer id) {
-        return filmStorage.findRatingById(id)
-                .orElseThrow(() -> new NotFoundException("Рейтинг с id = " + id + " не найден."));
     }
 
     private Film findFilmIfExist(Integer id) {

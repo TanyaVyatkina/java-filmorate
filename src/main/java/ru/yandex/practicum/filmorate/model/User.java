@@ -5,8 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -21,14 +19,5 @@ public class User {
 
     public boolean isEmptyName() {
         return name == null || name.isBlank();
-    }
-
-    public Map<String, Object> toMap() {
-        Map<String, Object> values = new HashMap<>();
-        values.put("email", email);
-        values.put("login", login);
-        values.put("name", name);
-        values.put("birthday", birthday);
-        return values;
     }
 }
