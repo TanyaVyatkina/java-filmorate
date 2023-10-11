@@ -138,7 +138,7 @@ public class FilmDbStorage implements FilmStorage {
                 "on g.genre_id = f.genre_id " +
                 "where film_id in (:film_ids) order by genre_id";
         SqlParameterSource namedParameters = new MapSqlParameterSource("film_ids", filmIds);
-        Map<Integer, Set<Genre>> genres = jdbcTemplate.query(sql, namedParameters, new GenreExtractor());
+        Map<Integer, Set<Genre>> genres = jdbcTemplate.query(sql, namedParameters, this::extractGenreData);
         for (Film film : films) {
             Set<Genre> g = genres.get(film.getId());
             if (g == null) {
@@ -195,12 +195,8 @@ public class FilmDbStorage implements FilmStorage {
         parameters.put("film_id", film.getId());
         jdbcTemplate.update(sqlQuery, parameters);
     }
-}
 
-class GenreExtractor implements ResultSetExtractor<Map<Integer, Set<Genre>>> {
-
-    @Override
-    public Map<Integer, Set<Genre>> extractData(ResultSet rs)
+    private Map<Integer, Set<Genre>> extractGenreData(ResultSet rs)
             throws SQLException, DataAccessException {
         Map<Integer, Set<Genre>> data = new HashMap<>();
         while (rs.next()) {
