@@ -63,7 +63,7 @@ public class FilmDbStorage implements FilmStorage {
         String sqlQuery = "select * from films as f left join ratings as r on f.rating_id = r.rating_id " +
                 "where film_id = :film_id";
         SqlParameterSource parameters = new MapSqlParameterSource("film_id", id);
-        List<Film> films = jdbcTemplate.query(sqlQuery, parameters, (rs, rowNum) -> makeFilm(rs) );
+        List<Film> films = jdbcTemplate.query(sqlQuery, parameters, (rs, rowNum) -> makeFilm(rs));
         if (films.isEmpty()) {
             return Optional.empty();
         } else {
