@@ -4,8 +4,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -35,10 +35,13 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate.getJdbcTemplate())
-                .withTableName("films")
-                .usingGeneratedKeyColumns("film_id");
-        int id = simpleJdbcInsert.executeAndReturnKey(toMap(film)).intValue();
+        String sqlQuery = "insert into films(name, description, release_date, duration, likes_count," +
+                " rating_id) values (:name, :description, :release_date, :duration, :likes_count, :rating_id)";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(sqlQuery, new MapSqlParameterSource().addValues(toMap(film)),
+                keyHolder, new String[]{"film_id"});
+
+        int id = keyHolder.getKey().intValue();
         film.setId(id);
         saveFilmGenres(id, film.getGenres());
         return film;
@@ -59,23 +62,13 @@ public class FilmDbStorage implements FilmStorage {
     public Optional<Film> findById(Integer id) {
         String sqlQuery = "select * from films as f left join ratings as r on f.rating_id = r.rating_id " +
                 "where film_id = :film_id";
-        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(sqlQuery, Collections.singletonMap("film_id", id));
-        if (filmRows.next()) {
-
-            Film film = new Film(
-                    filmRows.getInt("film_id"),
-                    filmRows.getString("name"),
-                    filmRows.getString("description"),
-                    filmRows.getDate("release_date").toLocalDate(),
-                    filmRows.getInt("duration"),
-                    filmRows.getInt("likes_count"),
-                    new Mpa(filmRows.getInt("rating_id"), filmRows.getString("rating_name")),
-                    new LinkedHashSet<>()
-            );
-            fillGenres(List.of(film));
-            return Optional.of(film);
-        } else {
+        SqlParameterSource parameters = new MapSqlParameterSource("film_id", id);
+        List<Film> films = jdbcTemplate.query(sqlQuery, parameters, (rs, rowNum) -> makeFilm(rs) );
+        if (films.isEmpty()) {
             return Optional.empty();
+        } else {
+            fillGenres(films);
+            return Optional.of(films.get(0));
         }
     }
 
@@ -124,7 +117,6 @@ public class FilmDbStorage implements FilmStorage {
                 new Mpa(rs.getInt("rating_id"), rs.getString("rating_name")),
                 new LinkedHashSet<>()
         );
-        //   fillMpa(film);
         return film;
     }
 

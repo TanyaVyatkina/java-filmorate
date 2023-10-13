@@ -53,10 +53,6 @@ public class FilmService {
         Film film = findFilmIfExist(id);
         User user = findUserIfExist(userId);
 
-        int likes = film.getLikesCount();
-        film.setLikesCount(++likes);
-
-        filmStorage.update(film);
         filmStorage.addLike(film, user);
     }
 

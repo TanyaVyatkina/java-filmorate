@@ -6,8 +6,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Genre {
+    @EqualsAndHashCode.Include
     private Integer id;
     private String name;
 

@@ -3,8 +3,8 @@ package ru.yandex.practicum.filmorate.storage.user;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -29,10 +29,13 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User create(User user) {
-        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate.getJdbcTemplate())
-                .withTableName("users")
-                .usingGeneratedKeyColumns("user_id");
-        int id = simpleJdbcInsert.executeAndReturnKey(toMap(user)).intValue();
+        String sqlQuery = "insert into users (email, login, name, birthday) " +
+                "values (:email, :login, :name, :birthday)";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(sqlQuery, new MapSqlParameterSource().addValues(toMap(user)),
+                keyHolder, new String[]{"user_id"});
+
+        int id = keyHolder.getKey().intValue();
         user.setId(id);
         return user;
     }
@@ -49,18 +52,12 @@ public class UserDbStorage implements UserStorage {
     @Override
     public Optional<User> findById(Integer id) {
         String sqlQuery = "select * from users where user_id = :user_id";
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sqlQuery, Collections.singletonMap("user_id", id));
-        if (userRows.next()) {
-            User user = new User(
-                    userRows.getInt("user_id"),
-                    userRows.getString("email"),
-                    userRows.getString("login"),
-                    userRows.getString("name"),
-                    userRows.getDate("birthday").toLocalDate()
-            );
-            return Optional.of(user);
-        } else {
+        SqlParameterSource namedParameters = new MapSqlParameterSource("user_id", id);
+        List<User> users = jdbcTemplate.query(sqlQuery, namedParameters, (rs, rowNum) -> makeUser(rs));
+        if (users.isEmpty()) {
             return Optional.empty();
+        } else {
+            return Optional.of(users.get(0));
         }
     }
 
