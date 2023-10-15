@@ -10,7 +10,10 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Component("dbUserStorage")
 public class UserDbStorage implements UserStorage {
@@ -63,7 +66,10 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void addFriend(User user, User friend) {
-        String sqlQuery = "insert into friendship (user_id, friend_id) " + "values (:user_id, :friend_id)";
+        String sqlQuery = "merge into friendship as f using " +
+                "(select cast(:user_id as int) as user_id, cast(:friend_id as int) as friend_id) as fs " +
+                "on f.user_id = fs.user_id and f.friend_id = fs.friend_id " +
+                "when not matched then insert (user_id, friend_id) values (:user_id, :friend_id)";
 
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("user_id", user.getId());

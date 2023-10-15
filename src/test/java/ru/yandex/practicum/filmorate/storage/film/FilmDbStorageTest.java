@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
@@ -23,11 +26,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class FilmDbStorageTest {
     private final FilmDbStorage filmStorage;
     private final UserDbStorage userStorage;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
-    public FilmDbStorageTest(FilmDbStorage filmStorage, UserDbStorage userStorage) {
+    public FilmDbStorageTest(FilmDbStorage filmStorage, UserDbStorage userStorage,
+                             NamedParameterJdbcTemplate jdbcTemplate) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Test
@@ -88,7 +94,7 @@ public class FilmDbStorageTest {
 
         filmStorage.addLike(film, user);
 
-        Set<Integer> resultLikes = filmStorage.getLikesByFilmId(film.getId());
+        Set<Integer> resultLikes = getLikesByFilmId(film.getId());
         assertThat(resultLikes)
                 .isNotNull()
                 .contains(user.getId())
@@ -106,7 +112,7 @@ public class FilmDbStorageTest {
         filmStorage.addLike(film, user1);
         filmStorage.addLike(film, user2);
 
-        Set<Integer> resultLikes = filmStorage.getLikesByFilmId(film.getId());
+        Set<Integer> resultLikes = getLikesByFilmId(film.getId());
         assertThat(resultLikes)
                 .isNotNull()
                 .contains(user1.getId(), user2.getId())
@@ -115,7 +121,7 @@ public class FilmDbStorageTest {
 
         filmStorage.removeLike(film, user1);
 
-        resultLikes = filmStorage.getLikesByFilmId(film.getId());
+        resultLikes = getLikesByFilmId(film.getId());
         assertThat(resultLikes)
                 .isNotNull()
                 .contains(user2.getId())
@@ -142,5 +148,16 @@ public class FilmDbStorageTest {
                 .hasFieldOrPropertyWithValue("likesCount", actualFilm.getLikesCount())
                 .hasFieldOrPropertyWithValue("duration", actualFilm.getDuration())
                 .hasFieldOrPropertyWithValue("releaseDate", actualFilm.getReleaseDate());
+    }
+
+    private Set<Integer> getLikesByFilmId(Integer filmId) {
+        String sql = "select user_id from likes where film_id = :film_id";
+
+        Set<Integer> userIds = new HashSet<>();
+        SqlParameterSource namedParameters = new MapSqlParameterSource("film_id", filmId);
+
+        jdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> userIds.add(rs.getInt("user_id")));
+
+        return userIds;
     }
 }

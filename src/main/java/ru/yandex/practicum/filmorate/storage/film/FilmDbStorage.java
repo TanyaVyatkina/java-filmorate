@@ -66,17 +66,19 @@ public class FilmDbStorage implements FilmStorage {
         List<Film> films = jdbcTemplate.query(sqlQuery, parameters, (rs, rowNum) -> makeFilm(rs));
         if (films.isEmpty()) {
             return Optional.empty();
-        } else {
-            fillGenres(films);
-            return Optional.of(films.get(0));
         }
+        fillGenres(films);
+        return Optional.of(films.get(0));
     }
 
     @Override
     public void addLike(Film film, User user) {
         changeLikesCount(film, true);
 
-        String sqlQuery = "insert into likes (user_id, film_id) " + "values (:user_id, :film_id)";
+        String sqlQuery = "merge into likes as l using " +
+                "(select cast(:user_id as int) as user_id, cast(:film_id as int) as film_id) as lk " +
+                "on l.user_id = lk.user_id and l.film_id = lk.film_id " +
+                "when not matched then insert (user_id, film_id) values (:user_id, :film_id)";
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("user_id", user.getId());
         parameters.put("film_id", film.getId());
@@ -93,17 +95,6 @@ public class FilmDbStorage implements FilmStorage {
         parameters.put("user_id", user.getId());
         parameters.put("film_id", film.getId());
         jdbcTemplate.update(sqlQuery, parameters);
-    }
-
-    public Set<Integer> getLikesByFilmId(Integer filmId) {
-        String sql = "select user_id from likes where film_id = :film_id";
-
-        Set<Integer> userIds = new HashSet<>();
-        SqlParameterSource namedParameters = new MapSqlParameterSource("film_id", filmId);
-
-        jdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> userIds.add(rs.getInt("user_id")));
-
-        return userIds;
     }
 
     private Film makeFilm(ResultSet rs) throws SQLException {
@@ -141,16 +132,22 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void saveFilmGenres(int id, Set<Genre> genres) {
-        if (genres != null) {
-            String sqlQuery = "insert into film_genre(film_id, genre_id) " +
-                    "values (:film_id, :genre_id)";
-            for (Genre genre : genres) {
-                Map<String, Object> parameters = new HashMap<>();
-                parameters.put("film_id", id);
-                parameters.put("genre_id", genre.getId());
-                jdbcTemplate.update(sqlQuery, parameters);
-            }
+        if (genres == null || genres.isEmpty()) {
+            return;
         }
+        StringBuilder sqlBuilder = new StringBuilder("insert into film_genre(film_id, genre_id) values ");
+        String[] values = new String[genres.size()];
+        String genreIdParam = "genre_id";
+        int i = 0;
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("film_id", id);
+        for (Genre genre : genres) {
+            values[i] = "(:film_id, :genre_id" + i + ")";
+            parameters.put(genreIdParam + i, genre.getId());
+            i++;
+        }
+        sqlBuilder.append(String.join(", ", values));
+        jdbcTemplate.update(sqlBuilder.toString(), parameters);
     }
 
     private void updateFilmGenres(Film film) {
@@ -177,13 +174,18 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void changeLikesCount(Film film, boolean increase) {
-        int likes = film.getLikesCount();
+        int filmId = film.getId();
+        String sqlQuery = "select count(user_id) from likes where film_id = :film_id";
+
+        SqlParameterSource parameter = new MapSqlParameterSource("film_id", filmId);
+        int likes = jdbcTemplate.queryForObject(sqlQuery, parameter, Integer.class);
+
         likes = increase ? ++likes : --likes;
 
-        String sqlQuery = "update films set likes_count = :likes_count where film_id = :film_id";
+        sqlQuery = "update films set likes_count = :likes_count where film_id = :film_id";
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("likes_count", likes);
-        parameters.put("film_id", film.getId());
+        parameters.put("film_id", filmId);
         jdbcTemplate.update(sqlQuery, parameters);
     }
 

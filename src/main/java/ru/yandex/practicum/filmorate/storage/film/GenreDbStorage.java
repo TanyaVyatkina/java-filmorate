@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -39,6 +41,13 @@ public class GenreDbStorage implements GenreStorage {
         } else {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public List<Genre> findGenresByIdList(List<Integer> ids) {
+        String sql = "select * from genres where genre_id in (:ids)";
+        SqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
+        return jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeGenre(rs));
     }
 
     private Genre makeGenre(ResultSet rs) throws SQLException {

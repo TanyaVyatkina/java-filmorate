@@ -10,4 +10,6 @@ public interface GenreStorage {
     List<Genre> findAllGenres();
 
     Optional<Genre> findGenreById(Integer id);
+
+    List<Genre> findGenresByIdList(List<Integer> ids);
 }
