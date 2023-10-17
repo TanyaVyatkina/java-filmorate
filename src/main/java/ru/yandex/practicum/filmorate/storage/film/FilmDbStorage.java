@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -15,6 +16,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component("dbFilmStorage")
@@ -112,23 +114,14 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void fillGenres(List<Film> films) {
-        List<Integer> filmIds = films
+        Map<Integer, Film> filmsMap = films
                 .stream()
-                .map(Film::getId)
-                .collect(Collectors.toList());
+                .collect(Collectors.toMap(Film::getId, Function.identity()));
         String sql = "select f.film_id, g.genre_id, g.name from genres as g join film_genre as f " +
                 "on g.genre_id = f.genre_id " +
                 "where film_id in (:film_ids) order by genre_id";
-        SqlParameterSource namedParameters = new MapSqlParameterSource("film_ids", filmIds);
-        Map<Integer, Set<Genre>> genres = jdbcTemplate.query(sql, namedParameters, this::extractGenreData);
-        for (Film film : films) {
-            Set<Genre> g = genres.get(film.getId());
-            if (g == null) {
-                film.setGenres(Collections.EMPTY_SET);
-            } else {
-                film.setGenres(genres.get(film.getId()));
-            }
-        }
+        SqlParameterSource namedParameters = new MapSqlParameterSource("film_ids", filmsMap.keySet());
+        jdbcTemplate.query(sql, namedParameters, (ResultSetExtractor<Void>) rs -> fillGenres(rs, filmsMap));
     }
 
     private void saveFilmGenres(int id, Set<Genre> genres) {
@@ -189,15 +182,13 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(sqlQuery, parameters);
     }
 
-    private Map<Integer, Set<Genre>> extractGenreData(ResultSet rs)
+    private Void fillGenres(ResultSet rs, Map<Integer, Film> films)
             throws SQLException, DataAccessException {
-        Map<Integer, Set<Genre>> data = new HashMap<>();
         while (rs.next()) {
             Integer filmId = rs.getInt("film_id");
             Genre genre = new Genre(rs.getInt("genre_id"), rs.getString("name"));
-            data.putIfAbsent(filmId, new LinkedHashSet<>());
-            data.get(filmId).add(genre);
+            films.get(filmId).addGenre(genre);
         }
-        return data;
+        return null;
     }
 }
