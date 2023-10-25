@@ -43,6 +43,7 @@ public class FilmDbStorage implements FilmStorage {
         SqlParameterSource parameters = new MapSqlParameterSource("release_date", year);
         List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
         fillGenres(films);
+        fillDirectors(films);
         return films;
     }
 
@@ -55,6 +56,7 @@ public class FilmDbStorage implements FilmStorage {
         SqlParameterSource parameters = new MapSqlParameterSource("genre_id", genreId);
         List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
         fillGenres(films);
+        fillDirectors(films);
         return films;
     }
 
@@ -70,6 +72,7 @@ public class FilmDbStorage implements FilmStorage {
         parameters.put("release_date", year);
         List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
         fillGenres(films);
+        fillDirectors(films);
         return films;
     }
 
