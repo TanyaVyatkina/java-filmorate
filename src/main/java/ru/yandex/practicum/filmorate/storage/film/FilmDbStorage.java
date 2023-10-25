@@ -36,6 +36,45 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> findAllByYear(int year) {
+        String sql =
+                "select f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id, f.likes_count, r.rating_name " +
+                        "from films f join ratings r on f.rating_id = r.rating_id " +
+                        "where year(f.release_date) = :release_date order BY f.film_id";
+        SqlParameterSource parameters = new MapSqlParameterSource("release_date", year);
+        List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
+        fillGenres(films);
+        return films;
+    }
+
+    @Override
+    public List<Film> findAllByGenre(int genreId) {
+        String sql =
+                "select f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id, f.likes_count, r.rating_name " +
+                        "from films f join ratings r on f.rating_id = r.rating_id " +
+                        "where f.film_id in (select film_genre.film_id from film_genre where genre_id = :genre_id ) order by f.film_id";
+        SqlParameterSource parameters = new MapSqlParameterSource("genre_id", genreId);
+        List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
+        fillGenres(films);
+        return films;
+    }
+
+    @Override
+    public List<Film> findAllByGenreAndYear(int genreId, int year) {
+        String sql =
+                "select f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id, f.likes_count, r.rating_name " +
+                        "from films f join ratings r on f.rating_id = r.rating_id " +
+                        "where f.film_id in (select film_genre.film_id from film_genre where genre_id = :genre_id) " +
+                        "and year(f.release_date) = :release_date order by f.film_id";
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("genre_id", genreId);
+        parameters.put("release_date", year);
+        List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
+        fillGenres(films);
+        return films;
+    }
+
+    @Override
     public Film create(Film film) {
         String sqlQuery = "insert into films(name, description, release_date, duration, likes_count," +
                 " rating_id) values (:name, :description, :release_date, :duration, :likes_count, :rating_id)";
