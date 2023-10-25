@@ -19,4 +19,7 @@ public interface FilmStorage {
     void addLike(Film film, User user);
 
     void removeLike(Film film, User user);
+
+    List<Film> getFilmsByDirectorId(Integer directorId, String sortBy);
+
 }
