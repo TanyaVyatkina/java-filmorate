@@ -9,6 +9,7 @@ import java.util.Optional;
 public interface FilmStorage {
 
     List<Film> findAll();
+
     List<Film> findAllByYear(int year);
 
     List<Film> findAllByGenre(int genreId);
@@ -24,5 +25,6 @@ public interface FilmStorage {
     void addLike(Film film, User user);
 
     void removeLike(Film film, User user);
+
     List<Film> getFilmsByDirectorId(Integer directorId, String sortBy);
 }
