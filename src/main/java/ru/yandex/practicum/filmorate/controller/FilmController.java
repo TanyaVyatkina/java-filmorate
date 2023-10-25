@@ -73,4 +73,12 @@ public class FilmController {
         log.debug("Список самых популярных фильмов: {}.", films);
         return films;
     }
+
+    @GetMapping("/director/{id}")
+    public List<Film> getFilmsByDirectorId(@PathVariable("id") Integer id, @RequestParam String sortBy) {
+        log.debug("Пришел запрос на поиск фильмов режиссера с id = {}, сортировка по {}", id, sortBy);
+        List<Film> films = filmService.getFilmsByDirectorId(id, sortBy);
+        log.debug("Найдены фильмы: {}.", films);
+        return films;
+    }
 }

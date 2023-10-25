@@ -3,11 +3,9 @@ package ru.yandex.practicum.filmorate.service.film;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.service.ValidateService;
+import ru.yandex.practicum.filmorate.storage.film.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.film.MpaStorage;
@@ -24,16 +22,19 @@ public class FilmService {
 
     private MpaStorage mpaStorage;
     private GenreStorage genreStorage;
+
+    private DirectorStorage directorStorage;
     private ValidateService validateService;
 
     @Autowired
     public FilmService(FilmStorage filmStorage, UserStorage userStorage, GenreStorage genreStorage,
-                       MpaStorage mpaStorage, ValidateService validateService) {
+                       MpaStorage mpaStorage, DirectorStorage directorStorage, ValidateService validateService) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.validateService = validateService;
         this.mpaStorage = mpaStorage;
         this.genreStorage = genreStorage;
+        this.directorStorage = directorStorage;
     }
 
     public Film findFilmById(Integer id) {
@@ -48,6 +49,7 @@ public class FilmService {
         validateService.validateUpdateFilm(film);
         checkRatingExists(film.getMpa());
         checkGenresExists(film.getGenres());
+        checkDirectorsExists(film.getDirectors());
         findFilmIfExist(film.getId());
 
         return filmStorage.update(film);
@@ -57,6 +59,7 @@ public class FilmService {
         validateService.validateFilm(film);
         checkRatingExists(film.getMpa());
         checkGenresExists(film.getGenres());
+        checkDirectorsExists(film.getDirectors());
 
         return filmStorage.create(film);
     }
@@ -102,6 +105,12 @@ public class FilmService {
         }
     }
 
+    public List<Film> getFilmsByDirectorId(Integer directorId, String sortBy) {
+        directorStorage.findDirectorById(directorId)
+                .orElseThrow(() -> new NotFoundException("Режиссер с id = " + directorId + " не найден."));
+        return filmStorage.getFilmsByDirectorId(directorId, sortBy);
+    }
+
     private Film findFilmIfExist(Integer id) {
         return filmStorage.findById(id)
                 .orElseThrow(() -> new NotFoundException("Фильм с id = " + id + " не найден."));
@@ -133,6 +142,23 @@ public class FilmService {
         if (!wrongGenres.isEmpty()) {
             throw new NotFoundException("Не найдены жанры с id = "
                     + wrongGenres);
+        }
+    }
+
+    private void checkDirectorsExists(Set<Director> directors) {
+        if (directors == null || directors.isEmpty()) return;
+        List<Integer> directorIds = directors
+                .stream()
+                .map(d -> d.getId())
+                .collect(Collectors.toList());
+        List<Director> resultDirectors = directorStorage.findDirectorsByIdList(directorIds);
+        List<Integer> wrongIds = directors
+                .stream()
+                .filter(dir -> !resultDirectors.contains(dir))
+                .map(dir -> dir.getId())
+                .collect(Collectors.toList());
+        if (!wrongIds.isEmpty()) {
+            throw new NotFoundException("Не найдены режиссеры с id = " + wrongIds);
         }
     }
 }
