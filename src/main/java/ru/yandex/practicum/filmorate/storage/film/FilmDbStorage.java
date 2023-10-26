@@ -165,12 +165,14 @@ public class FilmDbStorage implements FilmStorage {
                     .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
                     .limit(count)
                     .collect(Collectors.toList());
-        } else if (genreId == 0 && year != 0) {
+        }
+        if (genreId == 0 && year != 0) {
             return findAllByYear(year).stream()
                     .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
                     .limit(count)
                     .collect(Collectors.toList());
-        } else if (genreId != 0 && year == 0) {
+        }
+        if (genreId != 0 && year == 0) {
             return findAllByGenre(genreId).stream()
                     .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
                     .limit(count)
