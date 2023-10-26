@@ -278,14 +278,14 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getCommonFilms(Integer userId, Integer friendId) {
-        String filmRows = "SELECT FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, FILMS.rating_id, ratings.rating_name, COUNT(LV1.film_id) as likes_count\n" +
-                "FROM FILMS \n" +
-                "JOIN RATINGS ON FILMS.RATING_ID = RATINGS.RATING_ID  \n" +
-                "JOIN LIKES LV1 ON FILMS.FILM_ID = LV1.FILM_ID \n" +
-                "JOIN LIKES LV2 ON FILMS.FILM_ID = LV2.FILM_ID \n" +
-                "WHERE LV1.USER_ID = :userId AND LV2.USER_ID = :friendId\n" +
-                "GROUP BY FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, FILMS.rating_id, ratings.rating_name\n" +
-                "ORDER BY likes_count DESC";
+        String filmRows = "select films.film_id, films.name, films.description, films.release_date, films.duration, films.rating_id, ratings.rating_name, count(lv1.film_id) as likes_count " +
+                "from films " +
+                "join ratings on films.rating_id = ratings.rating_id  " +
+                "join likes lv1 on films.film_id = lv1.film_id " +
+                "join likes lv2 on films.film_id = lv2.film_id " +
+                "where lv1.user_id = :userId and lv2.user_id = :friendId " +
+                "group by films.film_id " +
+                "order by likes_count desc";
         Map<String, Object> params = new HashMap<>();
         params.put("userId", userId);
         params.put("friendId", friendId);
