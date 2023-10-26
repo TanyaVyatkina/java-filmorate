@@ -141,6 +141,7 @@ public class FilmService {
             throw new NotFoundException("Не найдены режиссеры с id = " + wrongIds);
         }
     }
+
     public List<Film> getCommonFilms(Integer userId, Integer friendId) {
         List<Film> commonFilms = filmStorage.getCommonFilms(userId, friendId);
         return commonFilms;
