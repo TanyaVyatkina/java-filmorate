@@ -10,6 +10,12 @@ public interface FilmStorage {
 
     List<Film> findAll();
 
+    List<Film> findAllByYear(int year);
+
+    List<Film> findAllByGenre(int genreId);
+
+    List<Film> findAllByGenreAndYear(int genreId, int year);
+
     Film create(Film film);
 
     Film update(Film film);
@@ -24,4 +30,5 @@ public interface FilmStorage {
 
     List<Film> getCommonFilms(Integer userId, Integer friendId);
 
+    List<Film> getMostPopularFilms(int count, int genreId, int year);
 }
