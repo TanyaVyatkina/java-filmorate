@@ -278,13 +278,13 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getCommonFilms(Integer userId, Integer friendId) {
-        String filmRows = "select films.film_id, films.name, films.description, films.release_date, films.duration, films.rating_id, ratings.rating_name, count(lv1.film_id) as likes_count " +
-                "from films " +
-                "join ratings on films.rating_id = ratings.rating_id  " +
-                "join likes lv1 on films.film_id = lv1.film_id " +
-                "join likes lv2 on films.film_id = lv2.film_id " +
+        String filmRows = "select f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id, r.rating_name, count(lv1.film_id) as likes_count " +
+                "from films as f " +
+                "join ratings as r on f.rating_id = r.rating_id  " +
+                "join likes lv1 on f.film_id = lv1.film_id " +
+                "join likes lv2 on f.film_id = lv2.film_id " +
                 "where lv1.user_id = :userId and lv2.user_id = :friendId " +
-                "group by films.film_id " +
+                "group by f.film_id " +
                 "order by likes_count desc";
         Map<String, Object> params = new HashMap<>();
         params.put("userId", userId);
