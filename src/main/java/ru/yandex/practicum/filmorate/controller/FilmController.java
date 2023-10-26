@@ -78,6 +78,7 @@ public class FilmController {
         log.debug("Найдены фильмы: {}.", films);
         return films;
     }
+
     @GetMapping("/common") //список общих фильмов
     public List<Film> getCommonFilms(@RequestParam("userId") final Integer userId,
                                      @RequestParam("friendId") final Integer friendId) {
