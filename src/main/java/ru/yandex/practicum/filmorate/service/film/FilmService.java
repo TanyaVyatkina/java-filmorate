@@ -78,11 +78,8 @@ public class FilmService {
         filmStorage.removeLike(film, user);
     }
 
-    public List<Film> getMostPopularFilms(int count) {
-        return filmStorage.findAll().stream()
-                .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
-                .limit(count)
-                .collect(Collectors.toList());
+    public List<Film> getMostPopularFilms(int count, int genreId, int year) {
+        return filmStorage.getMostPopularFilms(count, genreId, year);
     }
 
     public List<Film> getFilmsByDirectorId(Integer directorId, String sortBy) {
