@@ -79,30 +79,7 @@ public class FilmService {
     }
 
     public List<Film> getMostPopularFilms(int count, int genreId, int year) {
-        if (genreId == 0 && year == 0) {
-            return filmStorage.findAll().stream()
-                    .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
-                    .limit(count)
-                    .collect(Collectors.toList());
-        } else if (genreId == 0 && year != 0) {
-            //селект по всем жанрам и по конкретному году
-            return filmStorage.findAllByYear(year).stream()
-                    .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
-                    .limit(count)
-                    .collect(Collectors.toList());
-        } else if (genreId != 0 && year == 0) {
-            //селект по конкретному жанру и по всем годам
-            return filmStorage.findAllByGenre(genreId).stream()
-                    .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
-                    .limit(count)
-                    .collect(Collectors.toList());
-        } else {
-            //селект по конкретному жанру и по конкрутному году
-            return filmStorage.findAllByGenreAndYear(genreId, year).stream()
-                    .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
-                    .limit(count)
-                    .collect(Collectors.toList());
-        }
+        return filmStorage.getMostPopularFilms(count, genreId, year);
     }
 
     public List<Film> getFilmsByDirectorId(Integer directorId, String sortBy) {
