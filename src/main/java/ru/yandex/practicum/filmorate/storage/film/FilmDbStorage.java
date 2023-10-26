@@ -275,4 +275,20 @@ public class FilmDbStorage implements FilmStorage {
         }
         return null;
     }
+
+    @Override
+    public List<Film> getCommonFilms(Integer userId, Integer friendId) {
+        String filmRows = "SELECT FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, FILMS.rating_id, ratings.rating_name, COUNT(LV1.film_id) as likes_count\n" +
+                "FROM FILMS \n" +
+                "JOIN RATINGS ON FILMS.RATING_ID = RATINGS.RATING_ID  \n" +
+                "JOIN LIKES LV1 ON FILMS.FILM_ID = LV1.FILM_ID \n" +
+                "JOIN LIKES LV2 ON FILMS.FILM_ID = LV2.FILM_ID \n" +
+                "WHERE LV1.USER_ID = :userId AND LV2.USER_ID = :friendId\n" +
+                "GROUP BY FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, FILMS.rating_id, ratings.rating_name\n" +
+                "ORDER BY likes_count DESC";
+        Map<String, Object> params = new HashMap<>();
+        params.put("userId", userId);
+        params.put("friendId", friendId);
+        return jdbcTemplate.query(filmRows, params, (rs, rowNum) -> makeFilm(rs));
+    }
 }
