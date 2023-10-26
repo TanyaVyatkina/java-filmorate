@@ -10,12 +10,6 @@ public interface FilmStorage {
 
     List<Film> findAll();
 
-    List<Film> findAllByYear(int year);
-
-    List<Film> findAllByGenre(int genreId);
-
-    List<Film> findAllByGenreAndYear(int genreId, int year);
-
     Film create(Film film);
 
     Film update(Film film);

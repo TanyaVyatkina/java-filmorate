@@ -35,53 +35,11 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> findAllByYear(int year) {
-        String sql =
-                "select f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id, f.likes_count, r.rating_name " +
-                        "from films f join ratings r on f.rating_id = r.rating_id " +
-                        "where year(f.release_date) = :release_date order BY f.film_id";
-        SqlParameterSource parameters = new MapSqlParameterSource("release_date", year);
-        List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
-        fillGenres(films);
-        fillDirectors(films);
-        return films;
-    }
-
-    @Override
-    public List<Film> findAllByGenre(int genreId) {
-        String sql =
-                "select f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id, f.likes_count, r.rating_name " +
-                        "from films f join ratings r on f.rating_id = r.rating_id " +
-                        "where f.film_id in (select film_id from film_genre where genre_id = :genre_id ) order by f.film_id";
-        SqlParameterSource parameters = new MapSqlParameterSource("genre_id", genreId);
-        List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
-        fillGenres(films);
-        fillDirectors(films);
-        return films;
-    }
-
-    @Override
-    public List<Film> findAllByGenreAndYear(int genreId, int year) {
-        String sql =
-                "select f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id, f.likes_count, r.rating_name " +
-                        "from films f join ratings r on f.rating_id = r.rating_id " +
-                        "where f.film_id in (select film_genre.film_id from film_genre where genre_id = :genre_id) " +
-                        "and year(f.release_date) = :release_date order by f.film_id";
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("genre_id", genreId);
-        parameters.put("release_date", year);
-        List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
-        fillGenres(films);
-        fillDirectors(films);
-        return films;
-    }
-
-    @Override
     public Film create(Film film) {
-        String sqlQuery = "insert into films(name, description, release_date, duration, likes_count," +
+        String sql = "insert into films(name, description, release_date, duration, likes_count," +
                 " rating_id) values (:name, :description, :release_date, :duration, :likes_count, :rating_id)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(sqlQuery, new MapSqlParameterSource().addValues(toMap(film)),
+        jdbcTemplate.update(sql, new MapSqlParameterSource().addValues(toMap(film)),
                 keyHolder, new String[]{"film_id"});
 
         int id = keyHolder.getKey().intValue();
@@ -93,11 +51,11 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film update(Film film) {
-        String sqlQuery = "update films set " +
+        String sql = "update films set " +
                 "name = :name, description = :description, release_date = :release_date, duration = :duration, " +
                 "likes_count = :likes_count, rating_id = :rating_id " +
                 "where film_id = :film_id";
-        jdbcTemplate.update(sqlQuery, toMap(film));
+        jdbcTemplate.update(sql, toMap(film));
         updateFilmGenres(film);
         updateFilmDirectors(film);
         return findById(film.getId()).get();
@@ -105,10 +63,10 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Optional<Film> findById(Integer id) {
-        String sqlQuery = "select * from films as f left join ratings as r on f.rating_id = r.rating_id " +
+        String sql = "select * from films as f left join ratings as r on f.rating_id = r.rating_id " +
                 "where film_id = :film_id";
         SqlParameterSource parameters = new MapSqlParameterSource("film_id", id);
-        List<Film> films = jdbcTemplate.query(sqlQuery, parameters, (rs, rowNum) -> makeFilm(rs));
+        List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
         if (films.isEmpty()) {
             return Optional.empty();
         }
@@ -121,14 +79,14 @@ public class FilmDbStorage implements FilmStorage {
     public void addLike(Film film, User user) {
         changeLikesCount(film, true);
 
-        String sqlQuery = "merge into likes as l using " +
+        String sql = "merge into likes as l using " +
                 "(select cast(:user_id as int) as user_id, cast(:film_id as int) as film_id) as lk " +
                 "on l.user_id = lk.user_id and l.film_id = lk.film_id " +
                 "when not matched then insert (user_id, film_id) values (:user_id, :film_id)";
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("user_id", user.getId());
         parameters.put("film_id", film.getId());
-        jdbcTemplate.update(sqlQuery, parameters);
+        jdbcTemplate.update(sql, parameters);
     }
 
     @Override
@@ -177,29 +135,45 @@ public class FilmDbStorage implements FilmStorage {
                     .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
                     .limit(count)
                     .collect(Collectors.toList());
-        } else {
-            return findAllByGenreAndYear(genreId, year).stream()
-                    .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
-                    .limit(count)
-                    .collect(Collectors.toList());
         }
+        return findAllByGenreAndYear(genreId, year).stream()
+                .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
+                .limit(count)
+                .collect(Collectors.toList());
+    }
+
+
+    @Override
+    public List<Film> getCommonFilms(Integer userId, Integer friendId) {
+        String sql = "select f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id, r.rating_name, count(lv1.film_id) as likes_count " +
+                "from films as f " +
+                "join ratings as r on f.rating_id = r.rating_id  " +
+                "join likes lv1 on f.film_id = lv1.film_id " +
+                "join likes lv2 on f.film_id = lv2.film_id " +
+                "where lv1.user_id = :userId and lv2.user_id = :friendId " +
+                "group by f.film_id " +
+                "order by likes_count desc";
+        Map<String, Object> params = new HashMap<>();
+        params.put("userId", userId);
+        params.put("friendId", friendId);
+        return jdbcTemplate.query(sql, params, (rs, rowNum) -> makeFilm(rs));
     }
 
     private List<Film> getSortedFilmsByYear(Integer directorId) {
-        String sqlQuery = "select * from films as f left join film_director as fd on f.film_id = fd.film_id " +
+        String sql = "select * from films as f left join film_director as fd on f.film_id = fd.film_id " +
                 "left join ratings as r on f.rating_id = r.rating_id " +
                 "where fd.director_id = :director_id order by f.release_date";
         SqlParameterSource parameters = new MapSqlParameterSource("director_id", directorId);
-        return jdbcTemplate.query(sqlQuery, parameters, (rs, rowNum) -> makeFilm(rs));
+        return jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
     }
 
     private List<Film> getSortedFilmsByLikes(Integer directorId) {
-        String sqlQuery = "select * from films as f left join film_director as fd on f.film_id = fd.film_id " +
+        String sql = "select * from films as f left join film_director as fd on f.film_id = fd.film_id " +
                 "left join likes as l on l.film_id = f.film_id " +
                 "left join ratings as r on f.rating_id = r.rating_id " +
                 "where fd.director_id = :director_id group by f.film_id order by count(l.user_id) desc";
         SqlParameterSource parameters = new MapSqlParameterSource("director_id", directorId);
-        return jdbcTemplate.query(sqlQuery, parameters, (rs, rowNum) -> makeFilm(rs));
+        return jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
     }
 
     private Film makeFilm(ResultSet rs) throws SQLException {
@@ -345,19 +319,42 @@ public class FilmDbStorage implements FilmStorage {
         return null;
     }
 
-    @Override
-    public List<Film> getCommonFilms(Integer userId, Integer friendId) {
-        String filmRows = "select f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id, r.rating_name, count(lv1.film_id) as likes_count " +
-                "from films as f " +
-                "join ratings as r on f.rating_id = r.rating_id  " +
-                "join likes lv1 on f.film_id = lv1.film_id " +
-                "join likes lv2 on f.film_id = lv2.film_id " +
-                "where lv1.user_id = :userId and lv2.user_id = :friendId " +
-                "group by f.film_id " +
-                "order by likes_count desc";
-        Map<String, Object> params = new HashMap<>();
-        params.put("userId", userId);
-        params.put("friendId", friendId);
-        return jdbcTemplate.query(filmRows, params, (rs, rowNum) -> makeFilm(rs));
+    private List<Film> findAllByYear(int year) {
+        String sql =
+                "select f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id, f.likes_count, r.rating_name " +
+                        "from films f join ratings r on f.rating_id = r.rating_id " +
+                        "where year(f.release_date) = :release_date order BY f.film_id";
+        SqlParameterSource parameters = new MapSqlParameterSource("release_date", year);
+        List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
+        fillGenres(films);
+        fillDirectors(films);
+        return films;
+    }
+
+    private List<Film> findAllByGenre(int genreId) {
+        String sql =
+                "select f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id, f.likes_count, r.rating_name " +
+                        "from films f join ratings r on f.rating_id = r.rating_id " +
+                        "where f.film_id in (select film_id from film_genre where genre_id = :genre_id ) order by f.film_id";
+        SqlParameterSource parameters = new MapSqlParameterSource("genre_id", genreId);
+        List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
+        fillGenres(films);
+        fillDirectors(films);
+        return films;
+    }
+
+    private List<Film> findAllByGenreAndYear(int genreId, int year) {
+        String sql =
+                "select f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id, f.likes_count, r.rating_name " +
+                        "from films f join ratings r on f.rating_id = r.rating_id " +
+                        "where f.film_id in (select film_genre.film_id from film_genre where genre_id = :genre_id) " +
+                        "and year(f.release_date) = :release_date order by f.film_id";
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("genre_id", genreId);
+        parameters.put("release_date", year);
+        List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
+        fillGenres(films);
+        fillDirectors(films);
+        return films;
     }
 }
