@@ -92,7 +92,7 @@ public class FilmController {
     public List<Film> searchFilms(@RequestParam String query, @RequestParam String by) {
         log.debug("Поиск фильмов по запросам {}, {}", query, by);
         List<Film> films = filmService.searchFilms(query, by);
-        log.debug("Найдены фильмыёэдюё: {}.", films);
+        log.debug("Найдены фильмы: {}.", films);
         return films;
     }
 }
