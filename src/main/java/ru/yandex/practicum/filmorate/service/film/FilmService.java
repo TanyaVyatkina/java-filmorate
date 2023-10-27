@@ -82,6 +82,10 @@ public class FilmService {
         return filmStorage.getMostPopularFilms(count, genreId, year);
     }
 
+    public List<Film> searchFilms(String query, String by) {
+        return filmStorage.searchFilms(query, by);
+    }
+
     public List<Film> getFilmsByDirectorId(Integer directorId, String sortBy) {
         directorStorage.findDirectorById(directorId)
                 .orElseThrow(() -> new NotFoundException("Режиссер с id = " + directorId + " не найден."));
