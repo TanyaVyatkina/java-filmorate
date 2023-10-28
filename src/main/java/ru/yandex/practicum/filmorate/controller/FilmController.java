@@ -87,4 +87,10 @@ public class FilmController {
                                      @RequestParam("friendId") final Integer friendId) {
         return filmService.getCommonFilms(userId, friendId);
     }
+
+    @DeleteMapping("/{id}") //удаление фильма по id
+    public void filmDeleteById(@PathVariable("id") final Integer filmId) {
+        filmService.filmDeleteById(filmId);
+    }
+
 }
