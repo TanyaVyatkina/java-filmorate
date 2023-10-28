@@ -76,4 +76,9 @@ public class UserController {
         log.debug("Поиск общих друзей пользователей с id = {} и id = {}.", id, otherId);
         return userService.getCommonFriends(id, otherId);
     }
+
+    @DeleteMapping("/{id}") //удаление пользователя по id
+    public void userDeleteById(@PathVariable("id") final Integer userId) {
+        userService.userDeleteById(userId);
+    }
 }

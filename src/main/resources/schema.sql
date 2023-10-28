@@ -35,7 +35,7 @@ CREATE TABLE public.films(
 
 
 CREATE TABLE public.film_genre(
-		film_id INTEGER NOT NULL REFERENCES films(film_id),
+		film_id INTEGER NOT NULL REFERENCES films(film_id) ON DELETE CASCADE,
         genre_id INTEGER NOT NULL REFERENCES genres(genre_id)
 );
 
@@ -45,11 +45,11 @@ CREATE TABLE public.film_director(
 );
 
 CREATE TABLE public.likes(
-		user_id INTEGER NOT NULL REFERENCES users(user_id),
-        film_id INTEGER NOT NULL REFERENCES films(film_id)
+		user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+        film_id INTEGER NOT NULL REFERENCES films(film_id) ON DELETE CASCADE
 );
 
 CREATE TABLE public.friendship(
-		user_id INTEGER NOT NULL REFERENCES users(user_id),
-        friend_id INTEGER NOT NULL REFERENCES users(user_id)
+		user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+        friend_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE
 );

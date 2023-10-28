@@ -20,4 +20,6 @@ public interface UserStorage {
     void removeFriend(User user, User friend);
 
     List<User> findFriends(User user);
+
+    void deleteUserById(int id);
 }

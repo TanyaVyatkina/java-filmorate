@@ -143,4 +143,11 @@ public class FilmService {
         List<Film> commonFilms = filmStorage.getCommonFilms(userId, friendId);
         return commonFilms;
     }
+
+    public void filmDeleteById(int filmId) { //метод удаления фильма по id
+        if (filmStorage.findById(filmId) == null) {
+            throw new NotFoundException("Фильма такого нету((");
+        }
+        filmStorage.deleteFilmById(filmId);
+    }
 }
