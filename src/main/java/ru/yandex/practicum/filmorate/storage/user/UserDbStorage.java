@@ -91,6 +91,7 @@ public class UserDbStorage implements UserStorage {
         SqlParameterSource namedParameters = new MapSqlParameterSource("user_id", user.getId());
         return jdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> makeUser(rs));
     }
+
     @Override
     public List<Integer> getUsersFilms(Integer userId) {
         List<Integer> result;
