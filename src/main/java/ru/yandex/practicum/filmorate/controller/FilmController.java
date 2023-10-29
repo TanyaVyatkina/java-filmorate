@@ -90,4 +90,12 @@ public class FilmController {
         log.debug("Найдены фильмы: {}.", films);
         return films;
     }
+
+    @GetMapping("/search")
+    public List<Film> searchFilms(@RequestParam String query, @RequestParam String by) {
+        log.debug("Поиск фильмов по запросам {}, {}", query, by);
+        List<Film> films = filmService.searchFilms(query, by);
+        log.debug("Найдены фильмы: {}.", films);
+        return films;
+    }
 }
