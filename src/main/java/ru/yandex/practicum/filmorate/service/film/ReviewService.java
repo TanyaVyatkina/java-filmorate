@@ -24,9 +24,8 @@ public class ReviewService {
 
     public List<Review> findReviews(Integer count, Integer filmId) {
         if (filmId != null) {
-            if (filmStorage.findById(filmId).isEmpty()) {
-                throw new NotFoundException("Фильм с id = " + filmId + " не найден.");
-            }
+            filmStorage.findById(filmId)
+                    .orElseThrow(() -> new NotFoundException("Фильм с id = " + filmId + " не найден."));
 
             return reviewStorage.findReviewsByFilmIdWithCount(count, filmId);
         }
@@ -56,18 +55,17 @@ public class ReviewService {
 
     public void addLike(int reviewId, int userId) {
         checkReviewExists(reviewId);
-        if (userStorage.findById(userId).isEmpty()) {
-            throw new NotFoundException("Пользователь с id = " + userId + " не найден.");
-        }
+
+        userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден."));
 
         reviewStorage.addLike(reviewId, userId);
     }
 
     public void addDislike(int reviewId, int userId) {
         checkReviewExists(reviewId);
-        if (userStorage.findById(userId).isEmpty()) {
-            throw new NotFoundException("Пользователь с id = " + userId + " не найден.");
-        }
+        userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден."));
 
         reviewStorage.addDislike(reviewId, userId);
     }
@@ -93,13 +91,11 @@ public class ReviewService {
             throw new ValidationException("Отзыв не может не относиться ни к какому фильму.");
         }
 
-        if (userStorage.findById(review.getUserId()).isEmpty()) {
-            throw new NotFoundException("Пользователь с id = " + review.getUserId() + " не найден.");
-        }
+        userStorage.findById(review.getUserId())
+                .orElseThrow(() -> new NotFoundException("Пользователь с id = " + review.getUserId() + " не найден."));
 
-        if (filmStorage.findById(review.getFilmId()).isEmpty()) {
-            throw new NotFoundException("Фильм с id = " + review.getFilmId() + " не найден.");
-        }
+        filmStorage.findById(review.getFilmId())
+                .orElseThrow(() -> new NotFoundException("Фильм с id = " + review.getFilmId() + " не найден."));
     }
 
     private void checkReviewExists(int reviewId) {
