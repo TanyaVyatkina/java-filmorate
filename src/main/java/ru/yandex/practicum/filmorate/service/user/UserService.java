@@ -86,4 +86,8 @@ public class UserService {
             user.setName(user.getLogin());
         }
     }
+
+    public List<Integer> getUsersFilms(Integer id) {
+        return userStorage.getUsersFilms(id);
+    }
 }

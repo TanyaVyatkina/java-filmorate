@@ -10,10 +10,7 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Component("dbUserStorage")
 public class UserDbStorage implements UserStorage {
@@ -93,6 +90,14 @@ public class UserDbStorage implements UserStorage {
 
         SqlParameterSource namedParameters = new MapSqlParameterSource("user_id", user.getId());
         return jdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> makeUser(rs));
+    }
+    @Override
+    public List<Integer> getUsersFilms(Integer userId) {
+        List<Integer> result;
+        String sql = "select film_id from likes where user_id = :user_id";
+        SqlParameterSource namedParameters = new MapSqlParameterSource("user_id", userId);
+        result = jdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> rs.getInt("film_id"));
+        return result;
     }
 
     private User makeUser(ResultSet rs) throws SQLException {
