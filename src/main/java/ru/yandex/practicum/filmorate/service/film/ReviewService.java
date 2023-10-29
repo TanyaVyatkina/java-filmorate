@@ -1,9 +1,14 @@
 package ru.yandex.practicum.filmorate.service.film;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.model.enums.EventOperation;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.service.user.EventService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.ReviewStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -11,15 +16,18 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import java.util.List;
 
 @Service
+@Slf4j
 public class ReviewService {
     private final ReviewStorage reviewStorage;
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
+    private final EventService eventService;
 
-    public ReviewService(ReviewStorage reviewStorage, UserStorage userStorage, FilmStorage filmStorage) {
+    public ReviewService(ReviewStorage reviewStorage, UserStorage userStorage, FilmStorage filmStorage, EventService eventService) {
         this.reviewStorage = reviewStorage;
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
+        this.eventService = eventService;
     }
 
     public List<Review> findReviews(Integer count, Integer filmId) {
@@ -35,7 +43,9 @@ public class ReviewService {
 
     public Review createReview(Review review) {
         validateReview(review);
-        return reviewStorage.createReview(review);
+        Review newReview = reviewStorage.createReview(review);
+        eventService.addEvent(new Event(EventType.REVIEW, EventOperation.ADD, newReview.getReviewId(), newReview.getUserId()));
+        return newReview;
     }
 
     public Review findReviewById(Integer id) {
@@ -46,11 +56,21 @@ public class ReviewService {
     public Review updateReview(Review review) {
         checkReviewExists(review.getReviewId());
         validateReview(review);
+
+        Review review1 = reviewStorage.findReviewById(review.getReviewId()).get();
+
+        eventService.addEvent(new Event(EventType.REVIEW, EventOperation.UPDATE, review1.getReviewId(), review1.getUserId()));
         return reviewStorage.updateReview(review);
     }
 
     public void removeReviewById(Integer id) {
+        if (reviewStorage.findReviewById(id).isEmpty()) {
+            return;
+        }
+
+        Review review = reviewStorage.findReviewById(id).get();
         reviewStorage.removeReviewById(id);
+        eventService.addEvent(new Event(EventType.REVIEW, EventOperation.REMOVE, review.getReviewId(), review.getUserId()));
     }
 
     public void addLike(int reviewId, int userId) {
