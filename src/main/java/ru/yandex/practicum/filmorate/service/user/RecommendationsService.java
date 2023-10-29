@@ -24,7 +24,7 @@ public class RecommendationsService {
         Map<Integer, List<Integer>> filmsOfUsers = new HashMap<>();
 
         //получение списка пользователей
-        List<User> users = userService.findAllUsers();
+        List<User> users = userService.getCrossLikesUsers(userId);
 
         //получение всех фильмов лайкнутых пользователем
         for (User user : users) {

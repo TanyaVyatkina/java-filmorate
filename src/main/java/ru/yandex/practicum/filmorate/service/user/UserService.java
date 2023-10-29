@@ -64,6 +64,11 @@ public class UserService {
         return userStorage.findFriends(user);
     }
 
+    public List<User> getCrossLikesUsers(Integer id) {
+        List<User> crossLikesUsers = userStorage.findCrossLikesUsers(id);
+        return crossLikesUsers;
+    }
+
     public List<User> getCommonFriends(Integer id, Integer otherId) {
         User user = findUserIfExist(id);
         User otherUser = findUserIfExist(otherId);

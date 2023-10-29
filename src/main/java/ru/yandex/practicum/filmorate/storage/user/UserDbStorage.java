@@ -101,6 +101,18 @@ public class UserDbStorage implements UserStorage {
         return result;
     }
 
+    @Override
+    public List<User> findCrossLikesUsers(Integer id) {
+        List<User> result = new ArrayList<>();
+        List<Integer> filmsIds = getUsersFilms(id);
+        for (Integer filmId: filmsIds) {
+            String sql = "select * from users where user_id in (select user_id from likes where film_id = :film_id)";
+            SqlParameterSource namedParameters = new MapSqlParameterSource("film_id", filmId);
+            result.addAll(jdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> makeUser(rs)));
+        }
+        return result;
+    }
+
     private User makeUser(ResultSet rs) throws SQLException {
         User user = new User(
                 rs.getInt("user_id"),

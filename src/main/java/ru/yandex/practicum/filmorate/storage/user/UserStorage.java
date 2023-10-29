@@ -22,4 +22,6 @@ public interface UserStorage {
     List<User> findFriends(User user);
 
     List<Integer> getUsersFilms(Integer userId);
+
+    List<User> findCrossLikesUsers(Integer id);
 }
