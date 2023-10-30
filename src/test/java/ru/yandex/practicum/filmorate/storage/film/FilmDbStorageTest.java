@@ -132,7 +132,7 @@ public class FilmDbStorageTest {
     private Film getFilm() {
         return new Film(null, "Name", "Description",
                 LocalDate.of(2000, 10, 10), 100, 0,
-                new Mpa(1, null), new HashSet<>(), new HashSet<>());
+                new Mpa(1, null), new HashSet<>());
     }
 
     private User getUser() {

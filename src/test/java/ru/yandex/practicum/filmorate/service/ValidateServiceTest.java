@@ -91,6 +91,6 @@ public class ValidateServiceTest {
     Film getFilm() {
         return new Film(1, "Name", "Description",
                 LocalDate.of(2000, 10, 10), 100, 0,
-                new Mpa(1, null), new HashSet<>(), new HashSet<>());
+                new Mpa(1, null), new HashSet<>());
     }
 }
