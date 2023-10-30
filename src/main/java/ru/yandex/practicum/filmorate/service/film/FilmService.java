@@ -146,7 +146,7 @@ public class FilmService {
 
     public void filmDeleteById(int filmId) {
         filmStorage.findById(filmId)
-                .orElseThrow(() -> new NotFoundException("Не найден фильм с id = {}, id"));
+                .orElseThrow(() -> new NotFoundException("Не найден фильм с id = " + filmId));
         filmStorage.deleteFilmById(filmId);
     }
 }

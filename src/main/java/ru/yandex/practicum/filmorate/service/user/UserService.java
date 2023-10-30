@@ -89,7 +89,7 @@ public class UserService {
 
     public void userDeleteById(int userId) {
         userStorage.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Не найден пользователь с id = {}, id"));
+                .orElseThrow(() -> new NotFoundException("Не найден пользователь с id = " + userId));
         userStorage.deleteUserById(userId);
     }
 }
