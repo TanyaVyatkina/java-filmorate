@@ -99,9 +99,9 @@ public class UserService {
         }
     }
 
-
     public List<Integer> getUsersFilms(Integer id) {
         return userStorage.getUsersFilms(id);
+    }
 
     public void userDeleteById(int userId) {
         userStorage.findById(userId)
