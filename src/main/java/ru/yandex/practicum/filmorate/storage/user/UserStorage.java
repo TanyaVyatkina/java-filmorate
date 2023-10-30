@@ -25,5 +25,5 @@ public interface UserStorage {
 
     List<User> findCrossLikesUsers(Integer id);
 
-    void deleteUserById(int id);
+    void deleteById(int id);
 }

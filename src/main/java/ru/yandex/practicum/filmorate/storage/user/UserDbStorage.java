@@ -136,12 +136,9 @@ public class UserDbStorage implements UserStorage {
         return values;
     }
 
-    public void deleteUserById(int id) {
+    public void deleteById(int id) {
         String sql = "delete from USERS where USER_ID = :user_id";
-        int rowsAffected = jdbcTemplate.update(sql, Collections.singletonMap("user_id", id));
-        if (rowsAffected == 0) {
-            throw new NotFoundException("Пользователь не найден");
-        }
+        jdbcTemplate.update(sql, Collections.singletonMap("user_id", id));
     }
-
 }
+

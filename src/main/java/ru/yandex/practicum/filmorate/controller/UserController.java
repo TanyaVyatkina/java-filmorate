@@ -93,8 +93,8 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public void userDeleteById(@PathVariable("id") final Integer userId) {
-        userService.userDeleteById(userId);
+    public void deleteById(@PathVariable("id") final Integer userId) {
+        userService.deleteById(userId);
         log.debug("Пользователь с id = {} удалён", userId);
     }
 
