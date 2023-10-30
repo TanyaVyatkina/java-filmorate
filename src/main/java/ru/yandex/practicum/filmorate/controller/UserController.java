@@ -81,6 +81,12 @@ public class UserController {
         return userService.getCommonFriends(id, otherId);
     }
 
+
+    @DeleteMapping("/{id}")
+    public void userDeleteById(@PathVariable("id") final Integer userId) {
+        userService.userDeleteById(userId);
+        log.debug("Пользователь с id = {} удалён", userId);
+
     @GetMapping("/{id}/feed")
     public List<Event> getUserEvents(@PathVariable("id") Integer id) {
         log.debug("Поиск действий пользователя с id = {}", id);

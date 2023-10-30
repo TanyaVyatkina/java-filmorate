@@ -98,4 +98,11 @@ public class FilmController {
         log.debug("Найдены фильмы: {}.", films);
         return films;
     }
+
+    @DeleteMapping("/{id}")
+    public void filmDeleteById(@PathVariable("id") final Integer filmId) {
+        filmService.filmDeleteById(filmId);
+        log.debug("Фильм с id = {} удалён", filmId);
+    }
+
 }

@@ -154,4 +154,10 @@ public class FilmService {
         List<Film> commonFilms = filmStorage.getCommonFilms(userId, friendId);
         return commonFilms;
     }
+
+    public void filmDeleteById(int filmId) {
+        filmStorage.findById(filmId)
+                .orElseThrow(() -> new NotFoundException("Не найден фильм с id = " + filmId));
+        filmStorage.deleteFilmById(filmId);
+    }
 }

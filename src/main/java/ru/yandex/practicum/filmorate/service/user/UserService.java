@@ -93,4 +93,10 @@ public class UserService {
             user.setName(user.getLogin());
         }
     }
+
+    public void userDeleteById(int userId) {
+        userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Не найден пользователь с id = " + userId));
+        userStorage.deleteUserById(userId);
+    }
 }
