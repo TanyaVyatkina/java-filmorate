@@ -25,14 +25,14 @@ public class EventDbStorage implements EventStorage {
     }
 
     @Override
-    public List<Event> findEventsByUserId(Integer userId) {
+    public List<Event> findByUserId(Integer userId) {
         String sql = "select * from events where user_id = :userId";
         SqlParameterSource namedParameters = new MapSqlParameterSource("userId", userId);
         return jdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> makeEvent(rs));
     }
 
     @Override
-    public Event addEvent(Event event) {
+    public Event save(Event event) {
         String sqlQuery = "insert into events (event_type, operation, entity_id, user_id, timestamp) " +
                 "values (:eventType, :operation, :entityId, :userId, :timestamp)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
