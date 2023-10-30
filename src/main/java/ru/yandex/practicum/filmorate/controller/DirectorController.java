@@ -44,16 +44,16 @@ public class DirectorController {
 
     @PutMapping
     public Director update(@RequestBody Director director) {
-        log.debug("Пришел запрос на обновление фильма.");
+        log.debug("Пришел запрос на обновление данных о режиссере.");
         Director updatedDirector = directorService.updateDirector(director);
-        log.debug("Обновлен режиссер с id = {}", director.getId());
+        log.debug("Обновлены данные о режиссере с id = {}", director.getId());
         return updatedDirector;
     }
 
     @DeleteMapping("/{id}")
     public void removeById(@PathVariable("id") Integer id) {
-        log.debug("Удаление режиссера с id = {}", id);
+        log.debug("Удаление данных о режиссере с id = {}", id);
         directorService.removeDirectorById(id);
-        log.debug("Режиссер удален.");
+        log.debug("Данные удалены.");
     }
 }

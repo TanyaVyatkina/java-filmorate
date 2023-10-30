@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.ResultSet;
@@ -134,4 +135,13 @@ public class UserDbStorage implements UserStorage {
         }
         return values;
     }
+
+    public void deleteUserById(int id) {
+        String sql = "delete from USERS where USER_ID = :user_id";
+        int rowsAffected = jdbcTemplate.update(sql, Collections.singletonMap("user_id", id));
+        if (rowsAffected == 0) {
+            throw new NotFoundException("Пользователь не найден");
+        }
+    }
+
 }
