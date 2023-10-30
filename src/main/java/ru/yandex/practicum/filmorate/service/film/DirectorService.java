@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service.film;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -13,6 +14,7 @@ public class DirectorService {
 
     private DirectorStorage directorStorage;
 
+    @Autowired
     public DirectorService(DirectorStorage directorStorage) {
         this.directorStorage = directorStorage;
     }

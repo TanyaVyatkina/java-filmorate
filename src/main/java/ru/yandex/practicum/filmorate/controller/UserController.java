@@ -29,12 +29,6 @@ public class UserController {
         this.eventService = eventService;
     }
 
-    @Autowired
-    public UserController(UserService userService, EventService eventService) {
-        this.userService = userService;
-        this.eventService = eventService;
-    }
-
     @GetMapping
     public List<User> findAll() {
         log.debug("Поиск всех пользователей.");
