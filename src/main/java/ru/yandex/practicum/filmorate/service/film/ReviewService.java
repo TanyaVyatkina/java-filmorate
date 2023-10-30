@@ -72,11 +72,10 @@ public class ReviewService {
     }
 
     public void removeReviewById(Integer id) {
-        if (reviewStorage.findReviewById(id).isPresent()) {
-            Review review = reviewStorage.findReviewById(id).get();
+        reviewStorage.findReviewById(id).ifPresent((review) -> {
             reviewStorage.removeReviewById(id);
             eventService.addEvent(new Event(EventType.REVIEW, EventOperation.REMOVE, review.getReviewId(), review.getUserId()));
-        }
+        });
     }
 
     public void addLike(int reviewId, int userId) {
