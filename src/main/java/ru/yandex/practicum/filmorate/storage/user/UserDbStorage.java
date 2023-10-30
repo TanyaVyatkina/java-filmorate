@@ -6,14 +6,12 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Component("dbUserStorage")
 public class UserDbStorage implements UserStorage {
@@ -95,6 +93,26 @@ public class UserDbStorage implements UserStorage {
         return jdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> makeUser(rs));
     }
 
+    @Override
+    public List<Integer> getUsersFilms(Integer userId) {
+        List<Integer> result;
+        String sql = "select film_id from likes where user_id = :user_id";
+        SqlParameterSource namedParameters = new MapSqlParameterSource("user_id", userId);
+        result = jdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> rs.getInt("film_id"));
+        return result;
+    }
+
+    @Override
+    public List<User> findCrossLikesUsers(Integer id) {
+        List<Integer> filmsIds = getUsersFilms(id);
+        List<User> result = new ArrayList<>();
+        String sql = "select * from users where user_id in (select user_id from likes where film_id in (:filmsIds))";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("filmsIds", filmsIds);
+        result.addAll(jdbcTemplate.query(sql, params, (rs, rowNum) -> makeUser(rs)));
+        return result;
+    }
+
     private User makeUser(ResultSet rs) throws SQLException {
         User user = new User(
                 rs.getInt("user_id"),
@@ -117,4 +135,13 @@ public class UserDbStorage implements UserStorage {
         }
         return values;
     }
+
+    public void deleteUserById(int id) {
+        String sql = "delete from USERS where USER_ID = :user_id";
+        int rowsAffected = jdbcTemplate.update(sql, Collections.singletonMap("user_id", id));
+        if (rowsAffected == 0) {
+            throw new NotFoundException("Пользователь не найден");
+        }
+    }
+
 }

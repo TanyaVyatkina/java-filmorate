@@ -3,11 +3,12 @@ package ru.yandex.practicum.filmorate.service.film;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.enums.EventOperation;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.service.ValidateService;
+import ru.yandex.practicum.filmorate.service.user.EventService;
+import ru.yandex.practicum.filmorate.storage.film.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.film.MpaStorage;
@@ -24,16 +25,21 @@ public class FilmService {
 
     private MpaStorage mpaStorage;
     private GenreStorage genreStorage;
+
+    private DirectorStorage directorStorage;
     private ValidateService validateService;
+    private EventService eventService;
 
     @Autowired
     public FilmService(FilmStorage filmStorage, UserStorage userStorage, GenreStorage genreStorage,
-                       MpaStorage mpaStorage, ValidateService validateService) {
+                       MpaStorage mpaStorage, DirectorStorage directorStorage, ValidateService validateService, EventService eventService) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.validateService = validateService;
         this.mpaStorage = mpaStorage;
         this.genreStorage = genreStorage;
+        this.directorStorage = directorStorage;
+        this.eventService = eventService;
     }
 
     public Film findFilmById(Integer id) {
@@ -46,8 +52,9 @@ public class FilmService {
 
     public Film updateFilm(Film film) {
         validateService.validateUpdateFilm(film);
-        checkRatingExists(film.getMpa());
-        checkGenresExists(film.getGenres());
+        checkRatingExists(film);
+        checkGenresExists(film);
+        checkDirectorsExists(film);
         findFilmIfExist(film.getId());
 
         return filmStorage.update(film);
@@ -55,8 +62,9 @@ public class FilmService {
 
     public Film createFilm(Film film) {
         validateService.validateFilm(film);
-        checkRatingExists(film.getMpa());
-        checkGenresExists(film.getGenres());
+        checkRatingExists(film);
+        checkGenresExists(film);
+        checkDirectorsExists(film);
 
         return filmStorage.create(film);
     }
@@ -66,6 +74,7 @@ public class FilmService {
         User user = findUserIfExist(userId);
 
         filmStorage.addLike(film, user);
+        eventService.addEvent(new Event(EventType.LIKE, EventOperation.ADD, id, userId));
     }
 
     public void removeLike(Integer id, Integer userId) {
@@ -73,13 +82,21 @@ public class FilmService {
         User user = findUserIfExist(userId);
 
         filmStorage.removeLike(film, user);
+        eventService.addEvent(new Event(EventType.LIKE, EventOperation.REMOVE, id, userId));
     }
 
-    public List<Film> getMostPopularFilms(int count) {
-        return filmStorage.findAll().stream()
-                .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
-                .limit(count)
-                .collect(Collectors.toList());
+    public List<Film> getMostPopularFilms(int count, int genreId, int year) {
+        return filmStorage.getMostPopularFilms(count, genreId, year);
+    }
+
+    public List<Film> searchFilms(String query, String by) {
+        return filmStorage.searchFilms(query, by);
+    }
+
+    public List<Film> getFilmsByDirectorId(Integer directorId, String sortBy) {
+        directorStorage.findDirectorById(directorId)
+                .orElseThrow(() -> new NotFoundException("Режиссер с id = " + directorId + " не найден."));
+        return filmStorage.getFilmsByDirectorId(directorId, sortBy);
     }
 
     private Film findFilmIfExist(Integer id) {
@@ -92,13 +109,15 @@ public class FilmService {
                 .orElseThrow(() -> new NotFoundException("Пользователь с id = " + id + " не найден."));
     }
 
-    private void checkRatingExists(Mpa mpa) {
+    private void checkRatingExists(Film film) {
+        Mpa mpa = film.getMpa();
         if (mpa == null) return;
         mpaStorage.findRatingById(mpa.getId())
                 .orElseThrow(() -> new NotFoundException("Рейтинг с id = " + mpa.getId() + " не найден."));
     }
 
-    private void checkGenresExists(Set<Genre> genres) {
+    private void checkGenresExists(Film film) {
+        Set<Genre> genres = film.getGenres();
         if (genres == null || genres.isEmpty()) return;
         List<Integer> genreIds = genres
                 .stream()
@@ -114,5 +133,34 @@ public class FilmService {
             throw new NotFoundException("Не найдены жанры с id = "
                     + wrongGenres);
         }
+    }
+
+    private void checkDirectorsExists(Film film) {
+        Set<Director> directors = film.getDirectors();
+        if (directors == null || directors.isEmpty()) return;
+        List<Integer> directorIds = directors
+                .stream()
+                .map(d -> d.getId())
+                .collect(Collectors.toList());
+        List<Director> resultDirectors = directorStorage.findDirectorsByIdList(directorIds);
+        List<Integer> wrongIds = directors
+                .stream()
+                .filter(dir -> !resultDirectors.contains(dir))
+                .map(dir -> dir.getId())
+                .collect(Collectors.toList());
+        if (!wrongIds.isEmpty()) {
+            throw new NotFoundException("Не найдены режиссеры с id = " + wrongIds);
+        }
+    }
+
+    public List<Film> getCommonFilms(Integer userId, Integer friendId) {
+        List<Film> commonFilms = filmStorage.getCommonFilms(userId, friendId);
+        return commonFilms;
+    }
+
+    public void filmDeleteById(int filmId) {
+        filmStorage.findById(filmId)
+                .orElseThrow(() -> new NotFoundException("Не найден фильм с id = " + filmId));
+        filmStorage.deleteFilmById(filmId);
     }
 }

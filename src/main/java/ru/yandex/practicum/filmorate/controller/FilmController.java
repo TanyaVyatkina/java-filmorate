@@ -64,10 +64,45 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getMostPopularFilms(@RequestParam(defaultValue = "10", required = false) int count) {
-        log.debug("Пришел запрос на поиск {} самых популярных фильмов.", count);
-        List<Film> films = filmService.getMostPopularFilms(count);
+    public List<Film> getMostPopularFilms(
+            @RequestParam(defaultValue = "10", required = false) int count,
+            @RequestParam(defaultValue = "0") int genreId,
+            @RequestParam(defaultValue = "0") int year) {
+        log.debug("Пришел запрос на поиск самых популярных фильмов. {} количество {} ID жанра {} год (0 дефолт)", count, genreId, year);
+        List<Film> films = filmService.getMostPopularFilms(count, genreId, year);
         log.debug("Список самых популярных фильмов: {}.", films);
         return films;
     }
+
+    @GetMapping("/director/{id}")
+    public List<Film> getFilmsByDirectorId(@PathVariable("id") Integer id, @RequestParam String sortBy) {
+        log.debug("Пришел запрос на поиск фильмов режиссера с id = {}, сортировка по {}", id, sortBy);
+        List<Film> films = filmService.getFilmsByDirectorId(id, sortBy);
+        log.debug("Найдены фильмы: {}.", films);
+        return films;
+    }
+
+    @GetMapping("/common")
+    public List<Film> getCommonFilms(@RequestParam("userId") final Integer userId,
+                                     @RequestParam("friendId") final Integer friendId) {
+        log.debug("Пришел запрос на поиск общих фильмов пользователей: {},  {}", userId, friendId);
+        List<Film> films = filmService.getCommonFilms(userId, friendId);
+        log.debug("Найдены фильмы: {}.", films);
+        return films;
+    }
+
+    @GetMapping("/search")
+    public List<Film> searchFilms(@RequestParam String query, @RequestParam String by) {
+        log.debug("Поиск фильмов по запросам {}, {}", query, by);
+        List<Film> films = filmService.searchFilms(query, by);
+        log.debug("Найдены фильмы: {}.", films);
+        return films;
+    }
+
+    @DeleteMapping("/{id}")
+    public void filmDeleteById(@PathVariable("id") final Integer filmId) {
+        filmService.filmDeleteById(filmId);
+        log.debug("Фильм с id = {} удалён", filmId);
+    }
+
 }
