@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -66,5 +67,19 @@ public class ValidateService {
             throw new IllegalArgumentException("Не задан id пользователя.");
         }
         validateUser(user);
+    }
+
+    public void validateDirector(Director director) {
+        if (director.getName() == null || director.getName().isBlank()) {
+            throw new ValidationException("Имя режиссера должно быть заполнено.");
+        }
+    }
+
+    public void validateUpdateDirector(Director director) {
+        if (director.getId() == null) {
+            log.warn("Не задан id режиссера.");
+            throw new IllegalArgumentException("Не задан id режиссера.");
+        }
+        validateDirector(director);
     }
 }
