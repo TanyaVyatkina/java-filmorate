@@ -20,19 +20,11 @@ public class Film {
     private int likesCount;
     private Mpa mpa;
     private Set<Genre> genres;
-    private Set<Director> directors;
 
     public void addGenre(Genre genre) {
         if (genres == null) {
             genres = new LinkedHashSet<>();
         }
         genres.add(genre);
-    }
-
-    public void addDirector(Director director) {
-        if (directors == null) {
-            directors = new LinkedHashSet<>();
-        }
-        directors.add(director);
     }
 }
