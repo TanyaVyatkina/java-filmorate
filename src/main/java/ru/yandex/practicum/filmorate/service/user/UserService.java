@@ -71,6 +71,11 @@ public class UserService {
         return userStorage.findFriends(user);
     }
 
+    public List<User> getCrossLikesUsers(Integer id) {
+        List<User> crossLikesUsers = userStorage.findCrossLikesUsers(id);
+        return crossLikesUsers;
+    }
+
     public List<User> getCommonFriends(Integer id, Integer otherId) {
         User user = findUserIfExist(id);
         User otherUser = findUserIfExist(otherId);
@@ -93,6 +98,10 @@ public class UserService {
             user.setName(user.getLogin());
         }
     }
+
+
+    public List<Integer> getUsersFilms(Integer id) {
+        return userStorage.getUsersFilms(id);
 
     public void userDeleteById(int userId) {
         userStorage.findById(userId)

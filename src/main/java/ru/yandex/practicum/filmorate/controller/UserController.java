@@ -3,20 +3,31 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.user.RecommendationsService;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.service.user.EventService;
 import ru.yandex.practicum.filmorate.service.user.UserService;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @Slf4j
 @RequestMapping("/users")
 public class UserController {
     private UserService userService;
+    private RecommendationsService recommendationsService;
     private EventService eventService;
+
+    @Autowired
+    public UserController(UserService userService, RecommendationsService recommendationService, EventService eventService) {
+        this.userService = userService;
+        this.recommendationsService = recommendationService;
+        this.eventService = eventService;
+    }
 
     @Autowired
     public UserController(UserService userService, EventService eventService) {
@@ -81,6 +92,11 @@ public class UserController {
         return userService.getCommonFriends(id, otherId);
     }
 
+
+    @GetMapping("/{id}/recommendations")
+    public Set<Film> getRecommendedFilms(@PathVariable("id") Integer id) {
+        log.debug("Поиск рекомендаций для пользователя с id = {}.", id);
+        return recommendationsService.getRecommendedFilms(id);
 
     @DeleteMapping("/{id}")
     public void userDeleteById(@PathVariable("id") final Integer userId) {
