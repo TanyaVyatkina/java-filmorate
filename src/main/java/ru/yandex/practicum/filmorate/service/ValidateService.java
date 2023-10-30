@@ -71,6 +71,7 @@ public class ValidateService {
 
     public void validateDirector(Director director) {
         if (director.getName() == null || director.getName().isBlank()) {
+            log.warn("Имя режиссера должно быть заполнено");
             throw new ValidationException("Имя режиссера должно быть заполнено.");
         }
     }
