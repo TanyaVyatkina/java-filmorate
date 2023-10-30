@@ -409,11 +409,8 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public void deleteFilmById(Integer id) {
+    public void deleteById(Integer id) {
         String sql = "delete from films where film_id = :film_id";
-        int rowsAffected = jdbcTemplate.update(sql, Collections.singletonMap("film_id", id));
-        if (rowsAffected == 0) {
-            throw new NotFoundException("Фильм не найден");
-        }
+        jdbcTemplate.update(sql, Collections.singletonMap("film_id", id));
     }
 }

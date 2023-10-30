@@ -103,9 +103,7 @@ public class UserService {
         return userStorage.getUsersFilms(id);
     }
 
-    public void userDeleteById(int userId) {
-        userStorage.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Не найден пользователь с id = " + userId));
-        userStorage.deleteUserById(userId);
+    public void deleteById(int userId) {
+        userStorage.deleteById(userId);
     }
 }

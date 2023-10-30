@@ -158,9 +158,7 @@ public class FilmService {
         return commonFilms;
     }
 
-    public void filmDeleteById(int filmId) {
-        filmStorage.findById(filmId)
-                .orElseThrow(() -> new NotFoundException("Не найден фильм с id = " + filmId));
-        filmStorage.deleteFilmById(filmId);
+    public void deleteById(int filmId) {
+        filmStorage.deleteById(filmId);
     }
 }

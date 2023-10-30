@@ -100,8 +100,8 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}")
-    public void filmDeleteById(@PathVariable("id") final Integer filmId) {
-        filmService.filmDeleteById(filmId);
+    public void deleteById(@PathVariable("id") final Integer filmId) {
+        filmService.deleteById(filmId);
         log.debug("Фильм с id = {} удалён", filmId);
     }
 
