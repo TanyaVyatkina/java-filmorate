@@ -145,9 +145,10 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getCommonFilms(Integer userId, Integer friendId) {
-        String sql = "select f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id, r.rating_name, count(lv1.film_id) as likes_count " +
+        String sql = "select f.film_id, f.name, f.description, f.release_date, f.duration, " +
+                "f.rating_id, r.rating_name, count(lv1.film_id) as likes_count " +
                 "from films as f " +
-                "join ratings as r on f.rating_id = r.rating_id  " +
+                "join ratings as r on f.rating_id = r.rating_id " +
                 "join likes lv1 on f.film_id = lv1.film_id " +
                 "join likes lv2 on f.film_id = lv2.film_id " +
                 "where lv1.user_id = :userId and lv2.user_id = :friendId " +
@@ -157,6 +158,55 @@ public class FilmDbStorage implements FilmStorage {
         params.put("userId", userId);
         params.put("friendId", friendId);
         return jdbcTemplate.query(sql, params, (rs, rowNum) -> makeFilm(rs));
+    }
+
+    @Override
+    public List<Film> searchFilms(String query, String by) {
+        String queryForSql = "%" + query.toLowerCase() + "%";
+        List<Film> foundFilms;
+        if (by.equals("title")) {
+            foundFilms = searchFilmsByName(queryForSql);
+        } else if (by.equals("director")) {
+            foundFilms = searchFilmsByDirectorName(queryForSql);
+        } else if (by.equals("director,title") || by.equals("title,director")) {
+            foundFilms = searchFilmsByDirectorNameOrFilmName(queryForSql);
+        } else {
+            throw new IllegalArgumentException("Параметр запроса by указан неверно");
+        }
+        fillGenres(foundFilms);
+        fillDirectors(foundFilms);
+        return foundFilms;
+    }
+
+    private List<Film> searchFilmsByDirectorName(String query) {
+        String sql = "select f.film_id, f.name, f.description, f.release_date, f.duration, " +
+                "f.rating_id, f.likes_count, r.rating_name " +
+                "from films as f join ratings as r on f.rating_id = r.rating_id " +
+                "join film_director as fd on f.film_id = fd.film_id " +
+                "join directors d on d.director_id = fd.director_id " +
+                "where lower(d.director_name) like :name";
+        SqlParameterSource parameters = new MapSqlParameterSource("name", query);
+        return jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
+    }
+
+    private List<Film> searchFilmsByName(String query) {
+        String sql = "select f.film_id, f.name, f.description, f.release_date, f.duration, " +
+                "f.rating_id, f.likes_count, r.rating_name " +
+                "from films as f join ratings as r on f.rating_id = r.rating_id " +
+                "where lower(f.name) like :name";
+        SqlParameterSource parameters = new MapSqlParameterSource("name", query);
+        return jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
+    }
+
+    private List<Film> searchFilmsByDirectorNameOrFilmName(String query) {
+        String sql = "select f.film_id, f.name, f.description, f.release_date, f.duration, " +
+                "f.rating_id, f.likes_count, r.rating_name " +
+                "from films as f left join ratings as r on f.rating_id = r.rating_id " +
+                "left join film_director as fd on f.film_id = fd.film_id " +
+                "left join directors as d on d.director_id = fd.director_id " +
+                "where lower(d.director_name) like :name or lower(f.name) like :name order by f.release_date desc";
+        SqlParameterSource parameters = new MapSqlParameterSource("name", query);
+        return jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
     }
 
     private List<Film> getSortedFilmsByYear(Integer directorId) {

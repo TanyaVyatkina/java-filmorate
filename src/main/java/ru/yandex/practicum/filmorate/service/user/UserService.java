@@ -4,7 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.enums.EventOperation;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.service.ValidateService;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -15,11 +18,13 @@ import java.util.List;
 public class UserService {
     private UserStorage userStorage;
     private ValidateService validateService;
+    private EventService eventService;
 
     @Autowired
-    public UserService(@Qualifier("dbUserStorage") UserStorage userStorage, ValidateService validateService) {
+    public UserService(@Qualifier("dbUserStorage") UserStorage userStorage, ValidateService validateService, EventService eventService) {
         this.userStorage = userStorage;
         this.validateService = validateService;
+        this.eventService = eventService;
     }
 
     public User findUserById(Integer id) {
@@ -50,6 +55,7 @@ public class UserService {
         User friend = findUserIfExist(friendId);
 
         userStorage.addFriend(user, friend);
+        eventService.addEvent(new Event(EventType.FRIEND, EventOperation.ADD, friendId, id));
     }
 
     public void removeFriend(Integer id, Integer friendId) {
@@ -57,6 +63,7 @@ public class UserService {
         User friend = findUserIfExist(friendId);
 
         userStorage.removeFriend(user, friend);
+        eventService.addEvent(new Event(EventType.FRIEND, EventOperation.REMOVE, friendId, id));
     }
 
     public List<User> getUsersFriends(Integer id) {

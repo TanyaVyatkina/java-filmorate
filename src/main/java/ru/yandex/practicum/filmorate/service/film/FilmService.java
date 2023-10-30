@@ -4,7 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.enums.EventOperation;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.service.ValidateService;
+import ru.yandex.practicum.filmorate.service.user.EventService;
 import ru.yandex.practicum.filmorate.storage.film.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.GenreStorage;
@@ -25,16 +28,18 @@ public class FilmService {
 
     private DirectorStorage directorStorage;
     private ValidateService validateService;
+    private EventService eventService;
 
     @Autowired
     public FilmService(FilmStorage filmStorage, UserStorage userStorage, GenreStorage genreStorage,
-                       MpaStorage mpaStorage, DirectorStorage directorStorage, ValidateService validateService) {
+                       MpaStorage mpaStorage, DirectorStorage directorStorage, ValidateService validateService, EventService eventService) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.validateService = validateService;
         this.mpaStorage = mpaStorage;
         this.genreStorage = genreStorage;
         this.directorStorage = directorStorage;
+        this.eventService = eventService;
     }
 
     public Film findFilmById(Integer id) {
@@ -69,6 +74,7 @@ public class FilmService {
         User user = findUserIfExist(userId);
 
         filmStorage.addLike(film, user);
+        eventService.addEvent(new Event(EventType.LIKE, EventOperation.ADD, id, userId));
     }
 
     public void removeLike(Integer id, Integer userId) {
@@ -76,10 +82,15 @@ public class FilmService {
         User user = findUserIfExist(userId);
 
         filmStorage.removeLike(film, user);
+        eventService.addEvent(new Event(EventType.LIKE, EventOperation.REMOVE, id, userId));
     }
 
     public List<Film> getMostPopularFilms(int count, int genreId, int year) {
         return filmStorage.getMostPopularFilms(count, genreId, year);
+    }
+
+    public List<Film> searchFilms(String query, String by) {
+        return filmStorage.searchFilms(query, by);
     }
 
     public List<Film> getFilmsByDirectorId(Integer directorId, String sortBy) {
