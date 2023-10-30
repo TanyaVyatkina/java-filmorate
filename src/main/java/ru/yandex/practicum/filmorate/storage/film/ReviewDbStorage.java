@@ -41,7 +41,7 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public List<Review> findReviewsByFilmIdWithCount(Integer count, Integer filmId) {
-        String sql = "select * from reviews where filmId = :filmId order by useful desc limit :count";
+        String sql = "select * from reviews where film_id = :filmId order by useful desc limit :count";
 
         MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
         mapSqlParameterSource.addValue("filmId", filmId);
@@ -52,10 +52,10 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public Review createReview(Review review) {
-        String sqlQuery = "insert into reviews(content, isPositive, userId, filmId, useful) values (:content, :isPositive, :userId, :filmId, :useful)";
+        String sqlQuery = "insert into reviews(content, is_positive, user_id, film_id, useful) values (:content, :isPositive, :userId, :filmId, :useful)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(sqlQuery, new MapSqlParameterSource().addValues(toMap(review)),
-                keyHolder, new String[]{"reviewId"});
+                keyHolder, new String[]{"review_id"});
 
         int id = keyHolder.getKey().intValue();
         review.setReviewId(id);
@@ -64,7 +64,7 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public Optional<Review> findReviewById(Integer id) {
-        String sqlQuery = "select * from reviews where reviewId = :reviewId";
+        String sqlQuery = "select * from reviews where review_id = :reviewId";
         SqlParameterSource namedParameters = new MapSqlParameterSource("reviewId", id);
         List<Review> reviews = jdbcTemplate.query(sqlQuery, namedParameters, (rs, rowNum) -> makeReview(rs));
         if (reviews.isEmpty()) {
@@ -76,28 +76,28 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public Review updateReview(Review review) {
-        String sqlQuery = "update reviews set content = :content, isPositive = :isPositive where reviewId = :reviewId";
+        String sqlQuery = "update reviews set content = :content, is_positive = :isPositive where review_id = :reviewId";
         jdbcTemplate.update(sqlQuery, toMap(review));
         return findReviewById(review.getReviewId()).get();
     }
 
     @Override
     public void removeReviewById(Integer id) {
-        String sqlQuery = "delete from reviews where reviewId = :reviewId";
+        String sqlQuery = "delete from reviews where review_id = :reviewId";
         SqlParameterSource namedParameters = new MapSqlParameterSource("reviewId", id);
 
         jdbcTemplate.update(sqlQuery, namedParameters);
     }
 
     public void addLike(Integer reviewId, Integer userId) {
-        String sqlQuery = "update reviews set useful = useful + 1 where reviewId = :reviewId";
+        String sqlQuery = "update reviews set useful = useful + 1 where review_id = :reviewId";
         SqlParameterSource namedParameters = new MapSqlParameterSource("reviewId", reviewId);
 
         jdbcTemplate.update(sqlQuery, namedParameters);
     }
 
     public void addDislike(Integer reviewId, Integer userId) {
-        String sqlQuery = "update reviews set useful = useful - 1 where reviewId = :reviewId";
+        String sqlQuery = "update reviews set useful = useful - 1 where review_id = :reviewId";
         SqlParameterSource namedParameters = new MapSqlParameterSource("reviewId", reviewId);
 
         jdbcTemplate.update(sqlQuery, namedParameters);
@@ -105,11 +105,11 @@ public class ReviewDbStorage implements ReviewStorage {
 
     private Review makeReview(ResultSet rs) throws SQLException {
         Review review = new Review(
-                rs.getInt("reviewId"),
+                rs.getInt("review_id"),
                 rs.getString("content"),
-                rs.getBoolean("isPositive"),
-                rs.getInt("userId"),
-                rs.getInt("filmId"),
+                rs.getBoolean("is_positive"),
+                rs.getInt("user_id"),
+                rs.getInt("film_id"),
                 rs.getInt("useful")
         );
 
