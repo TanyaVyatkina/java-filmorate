@@ -52,9 +52,9 @@ public class FilmService {
 
     public Film updateFilm(Film film) {
         validateService.validateUpdateFilm(film);
-        checkRatingExists(film.getMpa());
-        checkGenresExists(film.getGenres());
-        checkDirectorsExists(film.getDirectors());
+        checkRatingExists(film);
+        checkGenresExists(film);
+        checkDirectorsExists(film);
         findFilmIfExist(film.getId());
 
         return filmStorage.update(film);
@@ -62,9 +62,9 @@ public class FilmService {
 
     public Film createFilm(Film film) {
         validateService.validateFilm(film);
-        checkRatingExists(film.getMpa());
-        checkGenresExists(film.getGenres());
-        checkDirectorsExists(film.getDirectors());
+        checkRatingExists(film);
+        checkGenresExists(film);
+        checkDirectorsExists(film);
 
         return filmStorage.create(film);
     }
@@ -109,13 +109,15 @@ public class FilmService {
                 .orElseThrow(() -> new NotFoundException("Пользователь с id = " + id + " не найден."));
     }
 
-    private void checkRatingExists(Mpa mpa) {
+    private void checkRatingExists(Film film) {
+        Mpa mpa = film.getMpa();
         if (mpa == null) return;
         mpaStorage.findRatingById(mpa.getId())
                 .orElseThrow(() -> new NotFoundException("Рейтинг с id = " + mpa.getId() + " не найден."));
     }
 
-    private void checkGenresExists(Set<Genre> genres) {
+    private void checkGenresExists(Film film) {
+        Set<Genre> genres = film.getGenres();
         if (genres == null || genres.isEmpty()) return;
         List<Integer> genreIds = genres
                 .stream()
@@ -133,7 +135,8 @@ public class FilmService {
         }
     }
 
-    private void checkDirectorsExists(Set<Director> directors) {
+    private void checkDirectorsExists(Film film) {
+        Set<Director> directors = film.getDirectors();
         if (directors == null || directors.isEmpty()) return;
         List<Integer> directorIds = directors
                 .stream()
