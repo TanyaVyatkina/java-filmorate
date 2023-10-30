@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS friendship, likes, film_genre, films, directors cascade constraints;
 DROP TABLE IF EXISTS users, genres, ratings, directors, film_director, films, film_genre, likes, friendship;
 
 CREATE TABLE public.users(

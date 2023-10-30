@@ -144,10 +144,9 @@ public class FilmService {
         return commonFilms;
     }
 
-    public void filmDeleteById(int filmId) { //метод удаления фильма по id
-        if (filmStorage.findById(filmId) == null) {
-            throw new NotFoundException("Фильма такого нету((");
-        }
+    public void filmDeleteById(int filmId) {
+        filmStorage.findById(filmId)
+                .orElseThrow(() -> new NotFoundException("Не найден фильм с id = {}, id"));
         filmStorage.deleteFilmById(filmId);
     }
 }

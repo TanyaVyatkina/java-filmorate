@@ -87,10 +87,9 @@ public class UserService {
         }
     }
 
-    public void userDeleteById(int userId) { //метод удаления пользователя по id
-        if (userStorage.findById(userId) == null) {
-            throw new NotFoundException("Пользователя такого нету((");
-        }
+    public void userDeleteById(int userId) {
+        userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Не найден пользователь с id = {}, id"));
         userStorage.deleteUserById(userId);
     }
 }

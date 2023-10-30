@@ -82,15 +82,16 @@ public class FilmController {
         return films;
     }
 
-    @GetMapping("/common") //список общих фильмов
+    @GetMapping("/common")
     public List<Film> getCommonFilms(@RequestParam("userId") final Integer userId,
                                      @RequestParam("friendId") final Integer friendId) {
         return filmService.getCommonFilms(userId, friendId);
     }
 
-    @DeleteMapping("/{id}") //удаление фильма по id
+    @DeleteMapping("/{id}")
     public void filmDeleteById(@PathVariable("id") final Integer filmId) {
         filmService.filmDeleteById(filmId);
+        log.debug("Фильм с id = {} удалён", filmId);
     }
 
 }
