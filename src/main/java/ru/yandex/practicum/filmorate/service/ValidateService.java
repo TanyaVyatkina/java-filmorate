@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
@@ -83,27 +82,5 @@ public class ValidateService {
             throw new IllegalArgumentException("Не задан id режиссера.");
         }
         validateDirector(director);
-    }
-
-    public void validateReview(Review review) {
-        if (review.getUseful() == null) {
-            review.setUseful(0);
-        }
-
-        if (review.getContent() == null || review.getContent().isBlank()) {
-            throw new ValidationException("Текст отзыва не может быть пустым.");
-        }
-
-        if (review.getIsPositive() == null) {
-            throw new ValidationException("Отзыв не может быть без типа.");
-        }
-
-        if (review.getUserId() == null) {
-            throw new ValidationException("Отзыв не может быть создан не без пользователя.");
-        }
-
-        if (review.getFilmId() == null) {
-            throw new ValidationException("Отзыв не может не относиться ни к какому фильму.");
-        }
     }
 }

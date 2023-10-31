@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.enums.EventOperation;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
-import ru.yandex.practicum.filmorate.service.ValidateService;
 import ru.yandex.practicum.filmorate.service.user.EventService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.ReviewStorage;
@@ -19,14 +18,12 @@ import java.util.List;
 @Service
 @Slf4j
 public class ReviewService {
-    private final ValidateService validateService;
     private final ReviewStorage reviewStorage;
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
     private final EventService eventService;
 
-    public ReviewService(ValidateService validateService, ReviewStorage reviewStorage, UserStorage userStorage, FilmStorage filmStorage, EventService eventService) {
-        this.validateService = validateService;
+    public ReviewService(ReviewStorage reviewStorage, UserStorage userStorage, FilmStorage filmStorage, EventService eventService) {
         this.reviewStorage = reviewStorage;
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
@@ -57,25 +54,23 @@ public class ReviewService {
     }
 
     public Review updateReview(Review review) {
+        checkReviewExists(review.getReviewId());
         validateReview(review);
 
-        if (review.getReviewId() == null) {
-            throw new ValidationException("Передан отзыв без id");
-        }
+        Review review1 = reviewStorage.findReviewById(review.getReviewId()).get();
 
-        checkReviewExists(review.getReviewId());
-
-        Review reviewUpdated = reviewStorage.updateReview(review);
-
-        eventService.addEvent(new Event(EventType.REVIEW, EventOperation.UPDATE, reviewUpdated.getReviewId(), reviewUpdated.getUserId()));
-        return reviewUpdated;
+        eventService.addEvent(new Event(EventType.REVIEW, EventOperation.UPDATE, review1.getReviewId(), review1.getUserId()));
+        return reviewStorage.updateReview(review);
     }
 
     public void removeReviewById(Integer id) {
-        reviewStorage.findReviewById(id).ifPresent((review) -> {
-            reviewStorage.removeReviewById(id);
-            eventService.addEvent(new Event(EventType.REVIEW, EventOperation.REMOVE, review.getReviewId(), review.getUserId()));
-        });
+        if (reviewStorage.findReviewById(id).isEmpty()) {
+            return;
+        }
+
+        Review review = reviewStorage.findReviewById(id).get();
+        reviewStorage.removeReviewById(id);
+        eventService.addEvent(new Event(EventType.REVIEW, EventOperation.REMOVE, review.getReviewId(), review.getUserId()));
     }
 
     public void addLike(int reviewId, int userId) {
@@ -96,7 +91,25 @@ public class ReviewService {
     }
 
     private void validateReview(Review review) {
-        validateService.validateReview(review);
+        if (review.getUseful() == null) {
+            review.setUseful(0);
+        }
+
+        if (review.getContent() == null || review.getContent().isBlank()) {
+            throw new ValidationException("Текст отзыва не может быть пустым.");
+        }
+
+        if (review.getIsPositive() == null) {
+            throw new ValidationException("Отзыв не может быть без типа.");
+        }
+
+        if (review.getUserId() == null) {
+            throw new ValidationException("Отзыв не может быть создан не без пользователя.");
+        }
+
+        if (review.getFilmId() == null) {
+            throw new ValidationException("Отзыв не может не относиться ни к какому фильму.");
+        }
 
         userStorage.findById(review.getUserId())
                 .orElseThrow(() -> new NotFoundException("Пользователь с id = " + review.getUserId() + " не найден."));
