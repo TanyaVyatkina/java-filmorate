@@ -22,12 +22,19 @@ public interface FilmStorage {
 
     List<Film> getFilmsByDirectorId(Integer directorId, String sortBy);
 
+    List<Film> getMostPopularFilms(Integer count);
+
     List<Film> getCommonFilms(Integer userId, Integer friendId);
 
-    List<Film> getMostPopularFilms(int count, int genreId, int year);
+    List<Film> getMostPopularFilmsByYear(Integer count, Integer year);
+
+    List<Film> getMostPopularFilmsByGenre(Integer count, Integer genreId);
+
+    List<Film> getMostPopularFilmsByGenreAndYear(Integer count, Integer genreId, Integer year);
 
     void deleteById(Integer id);
 
     List<Film> searchFilms(String query, String by);
 
+    List<Film> findRecomendedFilms(Integer id);
 }

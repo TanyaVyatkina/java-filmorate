@@ -24,10 +24,10 @@ public class EventService {
         userStorage.findById(id)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id = " + id + " не найден."));
 
-        return eventStorage.findEventsByUserId(id);
+        return eventStorage.findByUserId(id);
     }
 
     public Event addEvent(Event event) {
-        return eventStorage.addEvent(event);
+        return eventStorage.save(event);
     }
 }
