@@ -10,6 +10,8 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.enums.SearchType;
+import ru.yandex.practicum.filmorate.model.enums.SortingType;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -104,9 +106,9 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getFilmsByDirectorId(Integer directorId, String sortBy) {
         List<Film> films;
-        if (sortBy.equals("likes")) {
+        if (sortBy.equalsIgnoreCase(SortingType.LIKES.toString())) {
             films = getSortedFilmsByLikes(directorId);
-        } else if (sortBy.equals("year")) {
+        } else if (sortBy.equalsIgnoreCase(SortingType.YEAR.toString())) {
             films = getSortedFilmsByYear(directorId);
         } else {
             throw new NotFoundException("Ожидается сортировка по likes, либо year.");
@@ -164,14 +166,21 @@ public class FilmDbStorage implements FilmStorage {
     public List<Film> searchFilms(String query, String by) {
         String queryForSql = "%" + query.toLowerCase() + "%";
         List<Film> foundFilms;
-        if (by.equals("title")) {
+        if (by.equalsIgnoreCase(SearchType.TITLE.toString())) {
             foundFilms = searchFilmsByName(queryForSql);
-        } else if (by.equals("director")) {
+        } else if (by.equalsIgnoreCase(SearchType.DIRECTOR.toString())) {
             foundFilms = searchFilmsByDirectorName(queryForSql);
-        } else if (by.equals("director,title") || by.equals("title,director")) {
-            foundFilms = searchFilmsByDirectorNameOrFilmName(queryForSql);
         } else {
-            throw new IllegalArgumentException("Параметр запроса by указан неверно");
+            List<String> byList = Arrays.stream(by.split(","))
+                    .map(str -> str.toLowerCase())
+                    .collect(Collectors.toList());
+            if (byList.size() == 2 &&
+                    byList.containsAll(List.of(SearchType.TITLE.toString().toLowerCase(),
+                            SearchType.DIRECTOR.toString().toLowerCase()))) {
+                foundFilms = searchFilmsByDirectorNameOrFilmName(queryForSql);
+            } else {
+                throw new IllegalArgumentException("Параметр запроса by указан неверно");
+            }
         }
         fillGenres(foundFilms);
         fillDirectors(foundFilms);
