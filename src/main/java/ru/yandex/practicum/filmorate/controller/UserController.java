@@ -23,9 +23,9 @@ public class UserController {
     private EventService eventService;
 
     @Autowired
-    public UserController(UserService userService, RecommendationsService recommendationService, EventService eventService) {
+    public UserController(UserService userService, RecommendationsService recommendationsService, EventService eventService) {
         this.userService = userService;
-        this.recommendationsService = recommendationService;
+        this.recommendationsService = recommendationsService;
         this.eventService = eventService;
     }
 
@@ -87,7 +87,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}/recommendations")
-    public Set<Film> getRecommendedFilms(@PathVariable("id") Integer id) {
+    public List<Film> getRecommendedFilms(@PathVariable("id") Integer id) {
         log.debug("Поиск рекомендаций для пользователя с id = {}.", id);
         return recommendationsService.getRecommendedFilms(id);
     }

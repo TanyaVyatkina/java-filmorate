@@ -85,8 +85,20 @@ public class FilmService {
         eventService.addEvent(new Event(EventType.LIKE, EventOperation.REMOVE, id, userId));
     }
 
-    public List<Film> getMostPopularFilms(int count, int genreId, int year) {
-        return filmStorage.getMostPopularFilms(count, genreId, year);
+    public List<Film> getMostPopularFilms(Integer count) {
+        return filmStorage.getMostPopularFilms(count);
+    }
+
+    public List<Film> getMostPopularFilmsByYear(Integer count, Integer year) {
+        return filmStorage.getMostPopularFilmsByYear(count, year);
+    }
+
+    public List<Film> getMostPopularFilmsByGenre(Integer count, Integer genreId) {
+        return filmStorage.getMostPopularFilmsByGenre(count, genreId);
+    }
+
+    public List<Film> getMostPopularFilmsByGenreAndYear(Integer count, Integer genreId, Integer year) {
+        return filmStorage.getMostPopularFilmsByGenreAndYear(count, genreId, year);
     }
 
     public List<Film> searchFilms(String query, String by) {
@@ -160,5 +172,9 @@ public class FilmService {
 
     public void deleteById(int filmId) {
         filmStorage.deleteById(filmId);
+    }
+
+    public List<Film> getRecommendedFilms(Integer id) {
+        return filmStorage.findRecomendedFilms(id);
     }
 }

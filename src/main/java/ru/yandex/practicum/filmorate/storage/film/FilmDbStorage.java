@@ -117,26 +117,32 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getMostPopularFilms(int count, int genreId, int year) {
-        if (genreId == 0 && year == 0) {
-            return findAll().stream()
-                    .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
-                    .limit(count)
-                    .collect(Collectors.toList());
-        }
-        if (genreId == 0 && year != 0) {
-            return findAllByYear(year).stream()
-                    .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
-                    .limit(count)
-                    .collect(Collectors.toList());
-        }
-        if (genreId != 0 && year == 0) {
-            return findAllByGenre(genreId).stream()
-                    .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
-                    .limit(count)
-                    .collect(Collectors.toList());
-        }
+    public List<Film> getMostPopularFilmsByYear(Integer count, Integer year) {
+        return findAllByYear(year).stream()
+                .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
+                .limit(count)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Film> getMostPopularFilmsByGenre(Integer count, Integer genreId) {
+        return findAllByGenre(genreId).stream()
+                .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
+                .limit(count)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Film> getMostPopularFilmsByGenreAndYear(Integer count, Integer genreId, Integer year) {
         return findAllByGenreAndYear(genreId, year).stream()
+                .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
+                .limit(count)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Film> getMostPopularFilms(Integer count) {
+        return findAll().stream()
                 .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
                 .limit(count)
                 .collect(Collectors.toList());
@@ -412,5 +418,33 @@ public class FilmDbStorage implements FilmStorage {
     public void deleteById(Integer id) {
         String sql = "delete from films where film_id = :film_id";
         jdbcTemplate.update(sql, Collections.singletonMap("film_id", id));
+    }
+
+    @Override
+    public List<Film> findRecomendedFilms(Integer id) {
+
+        List<Film> films = new ArrayList<>();
+        Map<Integer, List<Integer>> filmsOfUsers = new HashMap<>();
+
+        String sqlGetUser = "select l2.user_id as l2_user_id from likes as l2, likes as l1 " +
+                "where l1.film_id = l2.film_id " +
+                "and l1.user_id = :user_id and l1.user_id != l2.user_id " +
+                "group by l1.user_id, l2.user_id " +
+                "order by count(*) desc limit 1";
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("user_id", id);
+        List<Integer> recommendedUserId = jdbcTemplate.query(sqlGetUser, parameters, (rs, rowNum) -> rs.getInt("l2_user_id"));
+
+        String findIdSql = "select * from films join ratings on films.rating_id = ratings.rating_id " +
+                            "where film_id in (select film_id from likes " +
+                            "where user_id in (:users_ids) " +
+                            "and film_id not in (select film_id from likes where user_id = :main_user_id))";
+        Map<String, Object> parametersFilms = new HashMap<>();
+        parameters.put("users_ids", recommendedUserId);
+        parameters.put("main_user_id", id);
+        films.addAll(jdbcTemplate.query(findIdSql, parameters, (rs, rowNum) -> makeFilm(rs)));
+        fillGenres(films);
+        fillDirectors(films);
+        return films;
     }
 }
