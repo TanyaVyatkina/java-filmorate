@@ -120,34 +120,71 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getMostPopularFilmsByYear(Integer count, Integer year) {
-        return findAllByYear(year).stream()
-                .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
-                .limit(count)
-                .collect(Collectors.toList());
+        String sql = "select * from films f " +
+                "left join ratings as r on f.rating_id = r.rating_id " +
+                "left join likes as l on f.film_id = l.film_id " +
+                "where year(f.release_date) = :year " +
+                "group by f.film_id " +
+                "order by count(l.film_id) desc limit :limit";
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("year", year);
+        parameters.put("limit", count);
+        List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
+        fillGenres(films);
+        fillDirectors(films);
+        return  films;
     }
 
     @Override
     public List<Film> getMostPopularFilmsByGenre(Integer count, Integer genreId) {
-        return findAllByGenre(genreId).stream()
-                .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
-                .limit(count)
-                .collect(Collectors.toList());
+        String sql = "select * from film_genre fg " +
+                "right join films f on f.film_id = fg.film_id " +
+                "left join ratings as r on f.rating_id = r.rating_id " +
+                "left join likes as l on f.film_id = l.film_id " +
+                "where fg.genre_id = :genreId " +
+                "group by f.film_id " +
+                "order by count(l.film_id) desc limit :limit";
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("genreId", genreId);
+        parameters.put("limit", count);
+        List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
+        fillGenres(films);
+        fillDirectors(films);
+        return  films;
     }
 
     @Override
     public List<Film> getMostPopularFilmsByGenreAndYear(Integer count, Integer genreId, Integer year) {
-        return findAllByGenreAndYear(genreId, year).stream()
-                .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
-                .limit(count)
-                .collect(Collectors.toList());
+
+        String sql = "select * from film_genre as fg " +
+                "right join films f on f.film_id = fg.film_id " +
+                "left join ratings as r on f.rating_id = r.rating_id " +
+                "left join likes as l on f.film_id = l.film_id " +
+                "where fg.genre_id = :genreId and year(f.release_date) = :year " +
+                "group by f.film_id " +
+                "order by count(l.film_id) desc limit :limit";
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("year", year);
+        parameters.put("genreId", genreId);
+        parameters.put("limit", count);
+        List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
+        fillGenres(films);
+        fillDirectors(films);
+        return  films;
     }
 
     @Override
     public List<Film> getMostPopularFilms(Integer count) {
-        return findAll().stream()
-                .sorted((f1, f2) -> f2.getLikesCount() - f1.getLikesCount())
-                .limit(count)
-                .collect(Collectors.toList());
+        String sql = "select * from films as f left join likes as l on f.film_id = l.film_id " +
+                "left join ratings as r on f.rating_id = r.rating_id " +
+                "group by f.film_id, l.film_id in ( select film_id from likes ) " +
+                "order by count(l.film_id) desc limit :limit";
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("limit", count);
+        List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
+        fillGenres(films);
+        fillDirectors(films);
+        return  films;
     }
 
 
