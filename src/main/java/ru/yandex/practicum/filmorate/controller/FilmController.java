@@ -103,31 +103,6 @@ public class FilmController {
         return films;
     }
 
-        /**
-        if (!genreId.equals(null) && !year.equals(null)) {
-            films.addAll(filmService.getMostPopularFilmsByGenreAndYear(count, genreId, year));
-            log.debug("Список самых популярных фильмов: {}.", films);
-        }
-        if (genreId.equals(null) && year.equals(null)) {
-            System.out.println(count);
-            films.addAll(films = filmService.getMostPopularFilms(count));
-            log.debug("Список самых популярных фильмов по жанрам и годам: {}. {} {}", films, genreId, year);
-            return films;
-        }
-        if (genreId.equals(null)) {
-            films.addAll(films = filmService.getMostPopularFilmsByYear(count, year));
-            log.debug("Список самых популярных фильмов по годам: {}. {}", films, year);
-            return films;
-        }
-        if (year.equals(null)) {
-            films.addAll(films = filmService.getMostPopularFilmsByGenre(count, genreId));
-            log.debug("Список самых популярных фильмов по жанрам: {}. {}", films, genreId);
-            return films;
-        }
-        return films;
-    }
-         **/
-
     @GetMapping("/director/{id}")
     public List<Film> getFilmsByDirectorId(@PathVariable("id") Integer id, @RequestParam String sortBy) {
         log.debug("Пришел запрос на поиск фильмов режиссера с id = {}, сортировка по {}", id, sortBy);
