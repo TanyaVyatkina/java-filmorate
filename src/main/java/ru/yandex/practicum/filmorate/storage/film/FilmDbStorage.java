@@ -143,7 +143,7 @@ public class FilmDbStorage implements FilmStorage {
                 "left join likes as l on f.film_id = l.film_id " +
                 "where fg.genre_id = :genreId " +
                 "group by f.film_id " +
-                "order by count(l.film_id) desc limit :limit";
+                "order by count(l.user_id) desc limit :limit";
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("genreId", genreId);
         parameters.put("limit", count);
@@ -162,7 +162,7 @@ public class FilmDbStorage implements FilmStorage {
                 "left join likes as l on f.film_id = l.film_id " +
                 "where fg.genre_id = :genreId and year(f.release_date) = :year " +
                 "group by f.film_id " +
-                "order by count(l.film_id) desc limit :limit";
+                "order by count(l.user_id) desc limit :limit";
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("year", year);
         parameters.put("genreId", genreId);
@@ -178,7 +178,7 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "select * from films as f left join likes as l on f.film_id = l.film_id " +
                 "left join ratings as r on f.rating_id = r.rating_id " +
                 "group by f.film_id, l.film_id in ( select film_id from likes ) " +
-                "order by count(l.film_id) desc limit :limit";
+                "order by count(l.user_id) desc limit :limit";
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("limit", count);
         List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
