@@ -125,7 +125,7 @@ public class FilmDbStorage implements FilmStorage {
                 "left join likes as l on f.film_id = l.film_id " +
                 "where year(f.release_date) = :year " +
                 "group by f.film_id " +
-                "order by count(l.film_id) desc limit :limit";
+                "order by count(l.user_id) desc limit :limit";
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("year", year);
         parameters.put("limit", count);
