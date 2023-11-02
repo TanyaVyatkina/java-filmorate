@@ -202,7 +202,10 @@ public class FilmDbStorage implements FilmStorage {
         Map<String, Object> params = new HashMap<>();
         params.put("userId", userId);
         params.put("friendId", friendId);
-        return jdbcTemplate.query(sql, params, (rs, rowNum) -> makeFilm(rs));
+        List<Film> films = jdbcTemplate.query(sql, params, (rs, rowNum) -> makeFilm(rs));
+        fillGenres(films);
+        fillDirectors(films);
+        return films;
     }
 
     @Override
