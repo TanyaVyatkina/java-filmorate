@@ -7,7 +7,7 @@ import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.model.enums.EventOperation;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.service.ValidateService;
-import ru.yandex.practicum.filmorate.service.user.EventService;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.film.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.GenreStorage;
@@ -28,18 +28,18 @@ public class FilmService {
 
     private DirectorStorage directorStorage;
     private ValidateService validateService;
-    private EventService eventService;
+    private EventStorage eventStorage;
 
     @Autowired
     public FilmService(FilmStorage filmStorage, UserStorage userStorage, GenreStorage genreStorage,
-                       MpaStorage mpaStorage, DirectorStorage directorStorage, ValidateService validateService, EventService eventService) {
+                       MpaStorage mpaStorage, DirectorStorage directorStorage, ValidateService validateService, EventStorage eventStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.validateService = validateService;
         this.mpaStorage = mpaStorage;
         this.genreStorage = genreStorage;
         this.directorStorage = directorStorage;
-        this.eventService = eventService;
+        this.eventStorage = eventStorage;
     }
 
     public Film findFilmById(Integer id) {
@@ -74,7 +74,7 @@ public class FilmService {
         User user = findUserIfExist(userId);
 
         filmStorage.addLike(film, user);
-        eventService.addEvent(new Event(EventType.LIKE, EventOperation.ADD, id, userId));
+        eventStorage.save(new Event(EventType.LIKE, EventOperation.ADD, id, userId));
     }
 
     public void removeLike(Integer id, Integer userId) {
@@ -82,7 +82,7 @@ public class FilmService {
         User user = findUserIfExist(userId);
 
         filmStorage.removeLike(film, user);
-        eventService.addEvent(new Event(EventType.LIKE, EventOperation.REMOVE, id, userId));
+        eventStorage.save(new Event(EventType.LIKE, EventOperation.REMOVE, id, userId));
     }
 
     public List<Film> getMostPopularFilms(Integer count) {

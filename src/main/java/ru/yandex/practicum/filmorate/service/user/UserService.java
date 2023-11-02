@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.enums.EventOperation;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.service.ValidateService;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.ArrayList;
@@ -18,13 +19,13 @@ import java.util.List;
 public class UserService {
     private UserStorage userStorage;
     private ValidateService validateService;
-    private EventService eventService;
+    private EventStorage eventStorage;
 
     @Autowired
-    public UserService(@Qualifier("dbUserStorage") UserStorage userStorage, ValidateService validateService, EventService eventService) {
+    public UserService(@Qualifier("dbUserStorage") UserStorage userStorage, ValidateService validateService, EventStorage eventStorage) {
         this.userStorage = userStorage;
         this.validateService = validateService;
-        this.eventService = eventService;
+        this.eventStorage = eventStorage;
     }
 
     public User findUserById(Integer id) {
@@ -55,7 +56,7 @@ public class UserService {
         User friend = findUserIfExist(friendId);
 
         userStorage.addFriend(user, friend);
-        eventService.addEvent(new Event(EventType.FRIEND, EventOperation.ADD, friendId, id));
+        eventStorage.save(new Event(EventType.FRIEND, EventOperation.ADD, friendId, id));
     }
 
     public void removeFriend(Integer id, Integer friendId) {
@@ -63,7 +64,7 @@ public class UserService {
         User friend = findUserIfExist(friendId);
 
         userStorage.removeFriend(user, friend);
-        eventService.addEvent(new Event(EventType.FRIEND, EventOperation.REMOVE, friendId, id));
+        eventStorage.save(new Event(EventType.FRIEND, EventOperation.REMOVE, friendId, id));
     }
 
     public List<User> getUsersFriends(Integer id) {
