@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Event;
@@ -22,7 +21,7 @@ public class UserService {
     private EventStorage eventStorage;
 
     @Autowired
-    public UserService(@Qualifier("dbUserStorage") UserStorage userStorage, ValidateService validateService, EventStorage eventStorage) {
+    public UserService(UserStorage userStorage, ValidateService validateService, EventStorage eventStorage) {
         this.userStorage = userStorage;
         this.validateService = validateService;
         this.eventStorage = eventStorage;

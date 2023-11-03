@@ -8,7 +8,7 @@ import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.enums.EventOperation;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
-import ru.yandex.practicum.filmorate.service.user.EventService;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.ReviewStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -21,13 +21,13 @@ public class ReviewService {
     private final ReviewStorage reviewStorage;
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
-    private final EventService eventService;
+    private final EventStorage eventStorage;
 
-    public ReviewService(ReviewStorage reviewStorage, UserStorage userStorage, FilmStorage filmStorage, EventService eventService) {
+    public ReviewService(ReviewStorage reviewStorage, UserStorage userStorage, FilmStorage filmStorage, EventStorage eventStorage) {
         this.reviewStorage = reviewStorage;
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
-        this.eventService = eventService;
+        this.eventStorage = eventStorage;
     }
 
     public List<Review> findReviews(Integer count, Integer filmId) {
@@ -44,7 +44,7 @@ public class ReviewService {
     public Review createReview(Review review) {
         validateReview(review);
         Review newReview = reviewStorage.createReview(review);
-        eventService.addEvent(new Event(EventType.REVIEW, EventOperation.ADD, newReview.getReviewId(), newReview.getUserId()));
+        eventStorage.save(new Event(EventType.REVIEW, EventOperation.ADD, newReview.getReviewId(), newReview.getUserId()));
         return newReview;
     }
 
@@ -59,7 +59,7 @@ public class ReviewService {
 
         Review review1 = reviewStorage.findReviewById(review.getReviewId()).get();
 
-        eventService.addEvent(new Event(EventType.REVIEW, EventOperation.UPDATE, review1.getReviewId(), review1.getUserId()));
+        eventStorage.save(new Event(EventType.REVIEW, EventOperation.UPDATE, review1.getReviewId(), review1.getUserId()));
         return reviewStorage.updateReview(review);
     }
 
@@ -70,7 +70,7 @@ public class ReviewService {
 
         Review review = reviewStorage.findReviewById(id).get();
         reviewStorage.removeReviewById(id);
-        eventService.addEvent(new Event(EventType.REVIEW, EventOperation.REMOVE, review.getReviewId(), review.getUserId()));
+        eventStorage.save(new Event(EventType.REVIEW, EventOperation.REMOVE, review.getReviewId(), review.getUserId()));
     }
 
     public void addLike(int reviewId, int userId) {
@@ -91,10 +91,6 @@ public class ReviewService {
     }
 
     private void validateReview(Review review) {
-        if (review.getUseful() == null) {
-            review.setUseful(0);
-        }
-
         if (review.getContent() == null || review.getContent().isBlank()) {
             throw new ValidationException("Текст отзыва не может быть пустым.");
         }

@@ -26,8 +26,4 @@ public class EventService {
 
         return eventStorage.findByUserId(id);
     }
-
-    public Event addEvent(Event event) {
-        return eventStorage.save(event);
-    }
 }
