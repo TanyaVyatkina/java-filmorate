@@ -8,7 +8,6 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.model.enums.SearchType;
 import ru.yandex.practicum.filmorate.model.enums.SortingType;
@@ -104,14 +103,12 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getFilmsByDirectorId(Integer directorId, String sortBy) {
+    public List<Film> getFilmsByDirectorId(Integer directorId, SortingType sortBy) {
         List<Film> films;
-        if (sortBy.equalsIgnoreCase(SortingType.LIKES.toString())) {
+        if (SortingType.LIKES.equals(sortBy)) {
             films = getSortedFilmsByLikes(directorId);
-        } else if (sortBy.equalsIgnoreCase(SortingType.YEAR.toString())) {
-            films = getSortedFilmsByYear(directorId);
         } else {
-            throw new NotFoundException("Ожидается сортировка по likes, либо year.");
+            films = getSortedFilmsByYear(directorId);
         }
         fillGenres(films);
         fillDirectors(films);
@@ -132,7 +129,7 @@ public class FilmDbStorage implements FilmStorage {
         List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
         fillGenres(films);
         fillDirectors(films);
-        return  films;
+        return films;
     }
 
     @Override
@@ -150,7 +147,7 @@ public class FilmDbStorage implements FilmStorage {
         List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
         fillGenres(films);
         fillDirectors(films);
-        return  films;
+        return films;
     }
 
     @Override
@@ -170,7 +167,7 @@ public class FilmDbStorage implements FilmStorage {
         List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
         fillGenres(films);
         fillDirectors(films);
-        return  films;
+        return films;
     }
 
     @Override
@@ -184,7 +181,7 @@ public class FilmDbStorage implements FilmStorage {
         List<Film> films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
         fillGenres(films);
         fillDirectors(films);
-        return  films;
+        return films;
     }
 
 
@@ -209,59 +206,34 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> searchFilms(String query, String by) {
+    public List<Film> searchFilms(String query, List<SearchType> by) {
         String queryForSql = "%" + query.toLowerCase() + "%";
-        List<Film> foundFilms;
-        if (by.equalsIgnoreCase(SearchType.TITLE.toString())) {
-            foundFilms = searchFilmsByName(queryForSql);
-        } else if (by.equalsIgnoreCase(SearchType.DIRECTOR.toString())) {
-            foundFilms = searchFilmsByDirectorName(queryForSql);
+        String sql;
+        if (by.containsAll(List.of(SearchType.TITLE, SearchType.DIRECTOR))) {
+            sql = "select f.film_id, f.name, f.description, f.release_date, f.duration, " +
+                    "f.rating_id, f.likes_count, r.rating_name " +
+                    "from films as f left join ratings as r on f.rating_id = r.rating_id " +
+                    "left join film_director as fd on f.film_id = fd.film_id " +
+                    "left join directors as d on d.director_id = fd.director_id " +
+                    "where lower(d.director_name) like :name or lower(f.name) like :name order by f.release_date desc";
+        } else if (by.contains(SearchType.TITLE)) {
+            sql = "select f.film_id, f.name, f.description, f.release_date, f.duration, " +
+                    "f.rating_id, f.likes_count, r.rating_name " +
+                    "from films as f join ratings as r on f.rating_id = r.rating_id " +
+                    "where lower(f.name) like :name";
         } else {
-            List<String> byList = Arrays.stream(by.split(","))
-                    .map(str -> str.toLowerCase())
-                    .collect(Collectors.toList());
-            if (byList.size() == 2 &&
-                    byList.containsAll(List.of(SearchType.TITLE.toString().toLowerCase(),
-                            SearchType.DIRECTOR.toString().toLowerCase()))) {
-                foundFilms = searchFilmsByDirectorNameOrFilmName(queryForSql);
-            } else {
-                throw new IllegalArgumentException("Параметр запроса by указан неверно");
-            }
+            sql = "select f.film_id, f.name, f.description, f.release_date, f.duration, " +
+                    "f.rating_id, f.likes_count, r.rating_name " +
+                    "from films as f join ratings as r on f.rating_id = r.rating_id " +
+                    "join film_director as fd on f.film_id = fd.film_id " +
+                    "join directors d on d.director_id = fd.director_id " +
+                    "where lower(d.director_name) like :name";
         }
+        SqlParameterSource parameters = new MapSqlParameterSource("name", queryForSql);
+        List<Film> foundFilms = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
         fillGenres(foundFilms);
         fillDirectors(foundFilms);
         return foundFilms;
-    }
-
-    private List<Film> searchFilmsByDirectorName(String query) {
-        String sql = "select f.film_id, f.name, f.description, f.release_date, f.duration, " +
-                "f.rating_id, f.likes_count, r.rating_name " +
-                "from films as f join ratings as r on f.rating_id = r.rating_id " +
-                "join film_director as fd on f.film_id = fd.film_id " +
-                "join directors d on d.director_id = fd.director_id " +
-                "where lower(d.director_name) like :name";
-        SqlParameterSource parameters = new MapSqlParameterSource("name", query);
-        return jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
-    }
-
-    private List<Film> searchFilmsByName(String query) {
-        String sql = "select f.film_id, f.name, f.description, f.release_date, f.duration, " +
-                "f.rating_id, f.likes_count, r.rating_name " +
-                "from films as f join ratings as r on f.rating_id = r.rating_id " +
-                "where lower(f.name) like :name";
-        SqlParameterSource parameters = new MapSqlParameterSource("name", query);
-        return jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
-    }
-
-    private List<Film> searchFilmsByDirectorNameOrFilmName(String query) {
-        String sql = "select f.film_id, f.name, f.description, f.release_date, f.duration, " +
-                "f.rating_id, f.likes_count, r.rating_name " +
-                "from films as f left join ratings as r on f.rating_id = r.rating_id " +
-                "left join film_director as fd on f.film_id = fd.film_id " +
-                "left join directors as d on d.director_id = fd.director_id " +
-                "where lower(d.director_name) like :name or lower(f.name) like :name order by f.release_date desc";
-        SqlParameterSource parameters = new MapSqlParameterSource("name", query);
-        return jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
     }
 
     private List<Film> getSortedFilmsByYear(Integer directorId) {
@@ -485,9 +457,9 @@ public class FilmDbStorage implements FilmStorage {
         List<Integer> recommendedUserId = jdbcTemplate.query(sqlGetUser, parameters, (rs, rowNum) -> rs.getInt("l2_user_id"));
 
         String findIdSql = "select * from films join ratings on films.rating_id = ratings.rating_id " +
-                            "where film_id in (select film_id from likes " +
-                            "where user_id in (:users_ids) " +
-                            "and film_id not in (select film_id from likes where user_id = :main_user_id))";
+                "where film_id in (select film_id from likes " +
+                "where user_id in (:users_ids) " +
+                "and film_id not in (select film_id from likes where user_id = :main_user_id))";
         Map<String, Object> parametersFilms = new HashMap<>();
         parameters.put("users_ids", recommendedUserId);
         parameters.put("main_user_id", id);
