@@ -24,15 +24,9 @@ public interface FilmStorage {
 
     List<Film> getFilmsByDirectorId(Integer directorId, SortingType sortBy);
 
-    List<Film> getMostPopularFilms(Integer count);
+    List<Film> getMostPopularFilms(Integer count, Integer genreId, Integer year);
 
     List<Film> getCommonFilms(Integer userId, Integer friendId);
-
-    List<Film> getMostPopularFilmsByYear(Integer count, Integer year);
-
-    List<Film> getMostPopularFilmsByGenre(Integer count, Integer genreId);
-
-    List<Film> getMostPopularFilmsByGenreAndYear(Integer count, Integer genreId, Integer year);
 
     void deleteById(Integer id);
 

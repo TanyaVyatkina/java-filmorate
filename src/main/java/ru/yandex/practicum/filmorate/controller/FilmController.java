@@ -67,43 +67,14 @@ public class FilmController {
         log.debug("Удален like к фильму (id = {}) пользователя (id = {}).", id, userId);
     }
 
-    @GetMapping(value = "/popular", params = {})
+    @GetMapping("/popular")
     public List<Film> getMostPopularFilms(
-            @RequestParam(defaultValue = "10", required = false) Integer count) {
+            @RequestParam(defaultValue = "10", required = false) Integer count,
+            @RequestParam(required = false) Integer genreId ,
+            @RequestParam(required = false) Integer year) {
         log.debug("Пришел запрос на поиск самых популярных фильмов. {} количество {} ID жанра {} год", count);
-        List<Film> films = filmService.getMostPopularFilms(count);
+        List<Film> films = filmService.getMostPopularFilms(count, genreId, year);
         log.debug("Список самых популярных фильмов {}", films);
-        return films;
-    }
-
-    @GetMapping(value = "/popular", params = { "year" })
-    public List<Film> getMostPopularFilmsByYear(
-            @RequestParam(defaultValue = "10", required = false) Integer count,
-            @RequestParam(value = "year") Integer year) {
-        log.debug("Пришел запрос на поиск самых популярных фильмов. {} количество {} ID жанра {} год", count, year);
-        List<Film> films = filmService.getMostPopularFilmsByYear(count, year);
-        log.debug("Список самых популярных фильмов {} по годам {}", films, year);
-        return films;
-    }
-
-    @GetMapping(value = "/popular", params = { "genreId" })
-    public List<Film> getMostPopularFilmsByGenre(
-            @RequestParam(defaultValue = "10", required = false) Integer count,
-            @RequestParam(value = "genreId") Integer genreId) {
-        log.debug("Пришел запрос на поиск самых популярных фильмов. {} количество {} ID жанра ", count, genreId);
-        List<Film> films = filmService.getMostPopularFilmsByGenre(count, genreId);
-        log.debug("Список самых популярных фильмов {} по годам {}", films, genreId);
-        return films;
-    }
-
-    @GetMapping(value = "/popular", params = { "year", "genreId" })
-    public List<Film> getMostPopularFilmsByGenreAndYear(
-            @RequestParam(defaultValue = "10", required = false) Integer count,
-            @RequestParam(value = "genreId") Integer genreId,
-            @RequestParam(value = "year") Integer year) {
-        log.debug("Пришел запрос на поиск самых популярных фильмов. {} количество {} ID жанра {} год", count, genreId, year);
-        List<Film> films = filmService.getMostPopularFilmsByGenreAndYear(count, genreId, year);
-        log.debug("Список самых популярных фильмов {} по годам {}", films, genreId, year);
         return films;
     }
 

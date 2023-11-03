@@ -6,26 +6,25 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
 import ru.yandex.practicum.filmorate.service.user.EventService;
-import ru.yandex.practicum.filmorate.service.user.RecommendationsService;
 import ru.yandex.practicum.filmorate.service.user.UserService;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @Slf4j
 @RequestMapping("/users")
 public class UserController {
     private UserService userService;
-    private RecommendationsService recommendationsService;
+    private FilmService filmService;
     private EventService eventService;
 
     @Autowired
-    public UserController(UserService userService, RecommendationsService recommendationsService, EventService eventService) {
+    public UserController(UserService userService, FilmService filmService, EventService eventService) {
         this.userService = userService;
-        this.recommendationsService = recommendationsService;
+        this.filmService = filmService;
         this.eventService = eventService;
     }
 
@@ -89,7 +88,7 @@ public class UserController {
     @GetMapping("/{id}/recommendations")
     public List<Film> getRecommendedFilms(@PathVariable("id") Integer id) {
         log.debug("Поиск рекомендаций для пользователя с id = {}.", id);
-        return recommendationsService.getRecommendedFilms(id);
+        return filmService.getRecommendedFilms(id);
     }
 
     @DeleteMapping("/{id}")

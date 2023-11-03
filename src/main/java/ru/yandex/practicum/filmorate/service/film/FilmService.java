@@ -17,6 +17,7 @@ import ru.yandex.practicum.filmorate.storage.film.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,10 +25,8 @@ import java.util.stream.Collectors;
 public class FilmService {
     private FilmStorage filmStorage;
     private UserStorage userStorage;
-
     private MpaStorage mpaStorage;
     private GenreStorage genreStorage;
-
     private DirectorStorage directorStorage;
     private ValidateService validateService;
     private EventStorage eventStorage;
@@ -87,20 +86,8 @@ public class FilmService {
         eventStorage.save(new Event(EventType.LIKE, EventOperation.REMOVE, id, userId));
     }
 
-    public List<Film> getMostPopularFilms(Integer count) {
-        return filmStorage.getMostPopularFilms(count);
-    }
-
-    public List<Film> getMostPopularFilmsByYear(Integer count, Integer year) {
-        return filmStorage.getMostPopularFilmsByYear(count, year);
-    }
-
-    public List<Film> getMostPopularFilmsByGenre(Integer count, Integer genreId) {
-        return filmStorage.getMostPopularFilmsByGenre(count, genreId);
-    }
-
-    public List<Film> getMostPopularFilmsByGenreAndYear(Integer count, Integer genreId, Integer year) {
-        return filmStorage.getMostPopularFilmsByGenreAndYear(count, genreId, year);
+    public List<Film> getMostPopularFilms(Integer count, Integer genreId, Integer year) {
+        return filmStorage.getMostPopularFilms(count, genreId, year);
     }
 
     public List<Film> searchFilms(String query, List<SearchType> by) {
