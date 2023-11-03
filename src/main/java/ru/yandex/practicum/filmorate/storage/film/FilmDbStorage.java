@@ -152,37 +152,32 @@ public class FilmDbStorage implements FilmStorage {
                 "order by count(l.user_id) desc limit :limit";
         Map<String, Object> parameters = new HashMap<>();
 
+        List<Film> films = null;
+
         if (genreId != null && year != null ) {
             parameters.put("year", year);
             parameters.put("genre_id", genreId);
             parameters.put("limit", count);
-            List<Film> films = jdbcTemplate.query(sqlQueryWithGenreIdAndYear, parameters, (rs, rowNum) -> makeFilm(rs));
-            fillGenres(films);
-            fillDirectors(films);
-            return films;
+            films = jdbcTemplate.query(sqlQueryWithGenreIdAndYear, parameters, (rs, rowNum) -> makeFilm(rs));
         }
         if (genreId != null && year == null) {
             parameters.put("genre_id", genreId);
             parameters.put("limit", count);
-            List<Film> films = jdbcTemplate.query(sqlQueryWithGenreId, parameters, (rs, rowNum) -> makeFilm(rs));
-            fillGenres(films);
-            fillDirectors(films);
-            return films;
+            films = jdbcTemplate.query(sqlQueryWithGenreId, parameters, (rs, rowNum) -> makeFilm(rs));
         }
-        if (year != null && genreId == null ) {
+        if (year != null && genreId == null) {
             parameters.put("year", year);
             parameters.put("limit", count);
-            List<Film> films = jdbcTemplate.query(sqlQueryWithYear, parameters, (rs, rowNum) -> makeFilm(rs));
-            fillGenres(films);
-            fillDirectors(films);
-            return films;
-        } else {
-            parameters.put("limit", count);
-            List<Film> films = jdbcTemplate.query(sqlQueryWithEmpty, parameters, (rs, rowNum) -> makeFilm(rs));
-            fillGenres(films);
-            fillDirectors(films);
-            return films;
+            films = jdbcTemplate.query(sqlQueryWithYear, parameters, (rs, rowNum) -> makeFilm(rs));
         }
+        if ( year == null && genreId == null) {
+            parameters.put("limit", count);
+            films = jdbcTemplate.query(sqlQueryWithEmpty, parameters, (rs, rowNum) -> makeFilm(rs));
+        }
+
+        fillGenres(films);
+        fillDirectors(films);
+        return films;
     }
 
     @Override
