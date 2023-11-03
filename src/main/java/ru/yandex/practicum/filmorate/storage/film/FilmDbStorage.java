@@ -105,11 +105,19 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getFilmsByDirectorId(Integer directorId, SortingType sortBy) {
         List<Film> films;
+        String sql;
         if (SortingType.LIKES.equals(sortBy)) {
-            films = getSortedFilmsByLikes(directorId);
+            sql = "select * from films as f left join film_director as fd on f.film_id = fd.film_id " +
+                    "left join likes as l on l.film_id = f.film_id " +
+                    "left join ratings as r on f.rating_id = r.rating_id " +
+                    "where fd.director_id = :director_id group by f.film_id order by count(l.user_id) desc";
         } else {
-            films = getSortedFilmsByYear(directorId);
+            sql = "select * from films as f left join film_director as fd on f.film_id = fd.film_id " +
+                    "left join ratings as r on f.rating_id = r.rating_id " +
+                    "where fd.director_id = :director_id order by f.release_date";
         }
+        SqlParameterSource parameters = new MapSqlParameterSource("director_id", directorId);
+        films = jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
         fillGenres(films);
         fillDirectors(films);
         return films;
@@ -234,23 +242,6 @@ public class FilmDbStorage implements FilmStorage {
         fillGenres(foundFilms);
         fillDirectors(foundFilms);
         return foundFilms;
-    }
-
-    private List<Film> getSortedFilmsByYear(Integer directorId) {
-        String sql = "select * from films as f left join film_director as fd on f.film_id = fd.film_id " +
-                "left join ratings as r on f.rating_id = r.rating_id " +
-                "where fd.director_id = :director_id order by f.release_date";
-        SqlParameterSource parameters = new MapSqlParameterSource("director_id", directorId);
-        return jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
-    }
-
-    private List<Film> getSortedFilmsByLikes(Integer directorId) {
-        String sql = "select * from films as f left join film_director as fd on f.film_id = fd.film_id " +
-                "left join likes as l on l.film_id = f.film_id " +
-                "left join ratings as r on f.rating_id = r.rating_id " +
-                "where fd.director_id = :director_id group by f.film_id order by count(l.user_id) desc";
-        SqlParameterSource parameters = new MapSqlParameterSource("director_id", directorId);
-        return jdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs));
     }
 
     private Film makeFilm(ResultSet rs) throws SQLException {
