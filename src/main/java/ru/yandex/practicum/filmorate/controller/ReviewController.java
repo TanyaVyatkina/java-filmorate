@@ -31,7 +31,7 @@ public class ReviewController {
 
     @PostMapping
     public Review create(@RequestBody Review review) {
-        log.debug("Проишёл запрос на создание отзыва");
+        log.debug("Пришёл запрос на создание отзыва");
         Review createdReview = reviewService.createReview(review);
         log.debug("Добавлен отзыв с id = {}", createdReview.getReviewId());
         return createdReview;
