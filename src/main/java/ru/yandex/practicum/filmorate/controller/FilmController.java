@@ -70,7 +70,7 @@ public class FilmController {
     @GetMapping("/popular")
     public List<Film> getMostPopularFilms(
             @RequestParam(defaultValue = "10", required = false) Integer count,
-            @RequestParam(required = false) Integer genreId ,
+            @RequestParam(required = false) Integer genreId,
             @RequestParam(required = false) Integer year) {
         log.debug("Пришел запрос на поиск самых популярных фильмов. {} количество {} ID жанра {} год", count);
         List<Film> films = filmService.getMostPopularFilms(count, genreId, year);
@@ -85,7 +85,8 @@ public class FilmController {
         try {
             films = filmService.getFilmsByDirectorId(id, SortingType.valueOf(sortBy.toUpperCase()));
         } catch (IllegalArgumentException ex) {
-            throw new ValidationException("Неверно указан параметр сортировки");
+            log.debug("Неверно указан параметр сортировки.");
+            throw new ValidationException("Неверно указан параметр сортировки.");
         }
         log.debug("Найдены фильмы: {}.", films);
         return films;
@@ -122,6 +123,7 @@ public class FilmController {
                 byList.add(SearchType.valueOf(byArray[i].toUpperCase()));
             }
         } catch (IllegalArgumentException ex) {
+            log.debug("Неверно указаны параметры поиска.");
             throw new ValidationException("Неверно указаны параметры поиска.");
         }
         return byList;
