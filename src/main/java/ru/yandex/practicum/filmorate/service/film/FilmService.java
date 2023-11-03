@@ -6,6 +6,8 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.model.enums.EventOperation;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.SearchType;
+import ru.yandex.practicum.filmorate.model.enums.SortingType;
 import ru.yandex.practicum.filmorate.service.ValidateService;
 import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.film.DirectorStorage;
@@ -101,11 +103,11 @@ public class FilmService {
         return filmStorage.getMostPopularFilmsByGenreAndYear(count, genreId, year);
     }
 
-    public List<Film> searchFilms(String query, String by) {
+    public List<Film> searchFilms(String query, List<SearchType> by) {
         return filmStorage.searchFilms(query, by);
     }
 
-    public List<Film> getFilmsByDirectorId(Integer directorId, String sortBy) {
+    public List<Film> getFilmsByDirectorId(Integer directorId, SortingType sortBy) {
         directorStorage.findDirectorById(directorId)
                 .orElseThrow(() -> new NotFoundException("Режиссер с id = " + directorId + " не найден."));
         return filmStorage.getFilmsByDirectorId(directorId, sortBy);

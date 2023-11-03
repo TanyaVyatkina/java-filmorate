@@ -3,9 +3,13 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.enums.SearchType;
+import ru.yandex.practicum.filmorate.model.enums.SortingType;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -106,7 +110,12 @@ public class FilmController {
     @GetMapping("/director/{id}")
     public List<Film> getFilmsByDirectorId(@PathVariable("id") Integer id, @RequestParam String sortBy) {
         log.debug("Пришел запрос на поиск фильмов режиссера с id = {}, сортировка по {}", id, sortBy);
-        List<Film> films = filmService.getFilmsByDirectorId(id, sortBy);
+        List<Film> films;
+        try {
+            films = filmService.getFilmsByDirectorId(id, SortingType.valueOf(sortBy.toUpperCase()));
+        } catch (IllegalArgumentException ex) {
+            throw new ValidationException("Неверно указан параметр сортировки");
+        }
         log.debug("Найдены фильмы: {}.", films);
         return films;
     }
@@ -123,7 +132,7 @@ public class FilmController {
     @GetMapping("/search")
     public List<Film> searchFilms(@RequestParam String query, @RequestParam String by) {
         log.debug("Поиск фильмов по запросам {}, {}", query, by);
-        List<Film> films = filmService.searchFilms(query, by);
+        List<Film> films = filmService.searchFilms(query, stringToSearchType(by));
         log.debug("Найдены фильмы: {}.", films);
         return films;
     }
@@ -132,6 +141,19 @@ public class FilmController {
     public void deleteById(@PathVariable("id") final Integer filmId) {
         filmService.deleteById(filmId);
         log.debug("Фильм с id = {} удалён", filmId);
+    }
+
+    private List<SearchType> stringToSearchType(String str) {
+        String[] byArray = str.split(",");
+        List<SearchType> byList = new ArrayList<>();
+        try {
+            for (int i = 0; i < byArray.length; i++) {
+                byList.add(SearchType.valueOf(byArray[i].toUpperCase()));
+            }
+        } catch (IllegalArgumentException ex) {
+            throw new ValidationException("Неверно указаны параметры поиска.");
+        }
+        return byList;
     }
 
 }
